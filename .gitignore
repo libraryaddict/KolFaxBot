@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+data/Settings.json
+data/monsters.txt
+data/State.json
+data/Clans.json
+package-lock.json
+github/
+.vscode/
