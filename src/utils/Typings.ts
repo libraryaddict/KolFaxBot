@@ -1,4 +1,4 @@
-import { FaxMessages } from "./FaxMessages";
+import type { FaxMessages } from "./FaxMessages";
 
 export type KOLCredentials = {
   sessionCookies: string;
@@ -40,12 +40,14 @@ export type KOLMessage = {
 
 export interface DepositedFax {
   requester: KoLUser;
-  clanId?: string;
+  clanId?: number;
   clanName?: string;
   fax: MonsterData;
+  faxClan?: number;
   requested: number;
   completed?: number;
   outcome: FaxMessages;
+  request: string;
 }
 
 export type EquipSlot =
@@ -111,7 +113,7 @@ export type ClanJoinAttempt =
 export type ClanType = "Fax Source" | "Random Clan";
 
 export interface FaxClanData {
-  clanId: string;
+  clanId: number;
   clanName: string;
   clanTitle: string; // Title we were given in the clan, null if title unknown
   faxMonster?: string; // The monster name of the fax machine, this is the raw kol provided name
@@ -143,7 +145,7 @@ export type UserInfo = {
 
 export type KoLClan = {
   name: string;
-  id: string;
+  id: number;
 };
 
 export interface UserClan extends KoLClan {
@@ -151,19 +153,6 @@ export interface UserClan extends KoLClan {
 }
 export type PhotoInfo = {
   name: string;
-};
-
-export type FaxbotSettings = {
-  username: string;
-  password: string;
-  botOperator: string;
-  defaultClan: string;
-  faxDumpClan: string;
-  runFaxRollover: boolean;
-  runFaxRolloverBurnTurns: boolean;
-  maintainLeadership: { [string: string]: string };
-  discordWebhook: string;
-  allowedRefreshers: string[];
 };
 
 export interface FaxbotDatabaseMonsterList {

@@ -1,22 +1,35 @@
-import { readFileSync, writeFileSync } from "fs";
-import {
-  FaxClanData,
-  UserClan,
+import { addLog } from "../../Settings";
+import type {
   ClanType,
+  FaxClanData,
+  KoLClan,
   MonsterData,
-  KoLClan
+  UserClan
 } from "../../utils/Typings";
+import { loadClansFromDatabase, removeClan, saveClan } from "./DatabaseManager";
 import { getMonster } from "./MonsterManager";
 
-const clansDataFile = "./data/Clans.json";
 // The clans we have access to. If we lose access to a clan, we will remove them from this list
 const clans: FaxClanData[] = [];
+let updateMonsterList: boolean = false;
 
-export function getClanById(id: string): UserClan {
+export function setMonsterListUpdated() {
+  updateMonsterList = false;
+}
+
+export function isMonsterListOutdated() {
+  return updateMonsterList;
+}
+
+export function setMonsterListOutdated() {
+  return updateMonsterList;
+}
+
+export function getClanById(id: number): UserClan {
   const def = clans.find((c) => c.clanId == id);
 
   if (def == null) {
-    return { name: "???", id: id };
+    return null;
   }
 
   return {
@@ -26,16 +39,16 @@ export function getClanById(id: string): UserClan {
   };
 }
 
-export function getClanDataById(id: string): FaxClanData {
+export function getClanDataById(id: number): FaxClanData {
   return clans.find((d) => d.clanId == id);
 }
 
 export function getClanType(clan: FaxClanData): ClanType {
-  if ((clan.clanTitle ?? "").toLowerCase().includes("source")) {
-    return "Fax Source";
+  if ((clan.clanTitle ?? ``).toLowerCase().includes(`source`)) {
+    return `Fax Source`;
   }
 
-  return "Random Clan";
+  return `Random Clan`;
 }
 
 /**
@@ -85,7 +98,7 @@ export function getClanByMonster(monster: MonsterData): FaxClanData {
   });
 
   for (const clan of sorted) {
-    const faxSource = getClanType(clan) == "Fax Source";
+    const faxSource = getClanType(clan) == `Fax Source`;
     const isMonster = clan.faxMonster == (monster.manualName ?? monster.name);
     let specificMonster = clan.faxMonsterId == monster.id;
 
@@ -109,55 +122,6 @@ export function getClanByMonster(monster: MonsterData): FaxClanData {
   return usingClan;
 }
 
-function loadClans() {
-  clans.splice(0);
-  clans.push(...JSON.parse(readFileSync(clansDataFile).toString()));
-}
-
-function saveClans() {
-  const orderedObjects: FaxClanData[] = [];
-
-  // So when viewing the json, the data is orderly
-  for (const clan of clans) {
-    orderedObjects.push({
-      clanId: clan.clanId,
-      clanName: clan.clanName,
-      clanTitle: clan.clanTitle,
-      faxMonster: clan.faxMonster ?? null,
-      faxMonsterId: clan.faxMonsterId ?? null,
-      clanFirstAdded: clan.clanFirstAdded,
-      clanLastChecked: clan.clanLastChecked,
-      faxMonsterLastChanged: clan.faxMonsterLastChanged
-    });
-  }
-
-  orderedObjects.sort((c1, c2) => {
-    const t1 = getClanType(c1);
-    const t2 = getClanType(c2);
-
-    if (t1 != t2) {
-      // If the clan types are different, show the fax source first then random clans
-      return t1 == "Fax Source" ? -1 : 1;
-    }
-
-    // If both clans are fax sources, then compare them by fax if possible
-    if (t1 == "Fax Source") {
-      if (c1.faxMonster != null && c2.faxMonster != null) {
-        // Compare by fax monster names
-        return c1.faxMonster.localeCompare(c2.faxMonster);
-      } else if (c1.faxMonster != c2.faxMonster) {
-        // The clan without a null monster goes first
-        return c1.faxMonster == null ? 1 : -1;
-      }
-    }
-
-    // Finally, compare them by clan name
-    return c1.clanName.localeCompare(c2.clanName);
-  });
-
-  writeFileSync(clansDataFile, JSON.stringify(orderedObjects, null, 2));
-}
-
 export function getOutdatedClans() {
   const lastCheckedCutoff = Math.round(Date.now() / 1000) - 60 * 60 * 24 * 14; // 2 weeks
 
@@ -173,14 +137,21 @@ export function updateClan(clan: FaxClanData) {
     existing.faxMonsterId = clan.faxMonsterId;
     existing.clanLastChecked = clan.clanLastChecked;
     existing.faxMonsterLastChanged = clan.faxMonsterLastChanged;
+    clan = existing;
   } else {
     clans.push(clan);
+    updateMonsterList = true;
   }
 
-  saveClans();
+  if (clan.clanLastChecked == 0) {
+    // If we haven't checked this clan, don't add it to the database yet..
+    return;
+  }
+
+  saveClan(clan);
 }
 
-export function removeInaccessibleClans(clansWeCanAccess: KoLClan[]) {
+export async function removeInaccessibleClans(clansWeCanAccess: KoLClan[]) {
   const toRemove = clans.filter(
     (c) => !clansWeCanAccess.some((c1) => c1.id == c.clanId)
   );
@@ -193,9 +164,10 @@ export function removeInaccessibleClans(clansWeCanAccess: KoLClan[]) {
     const index = clans.indexOf(clan);
 
     clans.splice(index, 1);
+    await removeClan(clan.clanId);
   }
 
-  saveClans();
+  updateMonsterList = true;
 }
 
 export function getUnknownClans(whitelistedClans: KoLClan[]): KoLClan[] {
@@ -224,6 +196,7 @@ export function setFaxMonster(
   }
 
   clan.faxMonster = monsterName;
+  updateMonsterList = true;
   updateClan(clan);
 }
 
@@ -232,7 +205,7 @@ export function getRolloverFax(): FaxClanData {
   const clanTargets = clans
     .filter(
       (c) =>
-        getClanType(c) == "Fax Source" &&
+        getClanType(c) == `Fax Source` &&
         c.faxMonster != null &&
         c.faxMonsterId == null
     )
@@ -276,7 +249,7 @@ export function getRolloverFax(): FaxClanData {
 
 export function getFaxSourceClans(): FaxClanData[] {
   return clans.filter(
-    (c) => getClanType(c) == "Fax Source" && c.faxMonster != null
+    (c) => getClanType(c) == `Fax Source` && c.faxMonster != null
   );
 }
 
@@ -286,4 +259,22 @@ export function isUnknownMonsterInClanData(): boolean {
   );
 }
 
-loadClans();
+export async function loadClans() {
+  clans.splice(0);
+
+  clans.push(...(await loadClansFromDatabase()));
+
+  const faxSources = clans.filter((c) => getClanType(c) == `Fax Source`);
+  const monsters = [];
+  faxSources.forEach((c) => {
+    if (c.faxMonster == null || monsters.includes(c.faxMonster)) {
+      return;
+    }
+
+    monsters.push(c.faxMonster);
+  });
+
+  addLog(
+    `Loaded ${clans.length} clans, of which ${faxSources.length} are fax sources and contain ${monsters.length} different monsters.`
+  );
+}

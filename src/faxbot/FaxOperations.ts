@@ -1,41 +1,35 @@
-import { ParentController } from "../ParentController";
+import { config } from "../config";
+import type { ParentController } from "../ParentController";
 import { addLog } from "../Settings";
-import { setFaxed } from "./managers/DataManager";
-import {
-  KoLUser,
+import { FaxMessages } from "../utils/FaxMessages";
+import type {
+  ClanJoinAttempt,
   DepositedFax,
-  KOLMessage,
-  FaxbotSettings,
   FaxClanData,
   KoLClan,
-  ClanJoinAttempt
+  KOLMessage,
+  KoLUser
 } from "../utils/Typings";
+import type { FaxRequest } from "./faxrequests/FaxRequest";
+import { FaxOutcome, PlayerFaxRequest } from "./faxrequests/FaxRequest";
 import {
-  getClanByMonster,
-  updateClan,
   getClanById,
+  getClanByMonster,
+  getClanDataById,
   setFaxMonster,
-  getClanDataById
+  updateClan
 } from "./managers/ClanManager";
+import { addFaxLog } from "./managers/DatabaseManager";
 import { getMonster, tryUpdateMonsters } from "./managers/MonsterManager";
-import {
-  FaxOutcome,
-  FaxRequest,
-  PlayerFaxRequest
-} from "./faxrequests/FaxRequest";
-import { FaxAdministration } from "./tasks/FaxAdministration";
-import { FaxMessages } from "../utils/FaxMessages";
-import { logFax } from "../utils/DiscordUtils";
+import type { FaxAdministration } from "./tasks/FaxAdministration";
 
 export class FaxOperations {
-  settings: FaxbotSettings;
   privateMessages: KOLMessage[] = [];
   controller: ParentController;
   administration: FaxAdministration;
 
   constructor(controller: ParentController) {
     this.controller = controller;
-    this.settings = controller.settings;
     this.administration = controller.admin;
   }
 
@@ -49,16 +43,16 @@ export class FaxOperations {
     try {
       faxAttempt = await this.handleFaxRequest(player, message);
     } catch (e) {
-      addLog("Error: ", e);
+      addLog(`Error: `, e);
       this.getClient().sendPrivateMessage(
         player,
         FaxMessages.ERROR_INTERNAL_ERROR
       );
     } finally {
       if (faxAttempt != null) {
-        logFax(faxAttempt.faxAttempt);
+        faxAttempt.faxAttempt.completed = Math.round(Date.now() / 1000);
+        await addFaxLog(faxAttempt.faxAttempt);
 
-        faxAttempt.faxAttempt.completed = Math.round(Date.now());
         this.administration.faxes.push(faxAttempt.faxAttempt);
 
         if (faxAttempt.hasFax) {
@@ -67,9 +61,7 @@ export class FaxOperations {
       }
     }
 
-    if (this.getClient().getCurrentClan().id != this.settings.defaultClan) {
-      this.getClient().joinClanForcibly(getClanById(this.settings.defaultClan));
-    }
+    await this.joinDefaultClan();
   }
 
   async handleFaxRequest(
@@ -112,7 +104,10 @@ export class FaxOperations {
     if (clan == null) {
       this.getClient().sendPrivateMessage(
         player,
-        FaxMessages.ERROR_MONSTER_NOT_IN_FAX_NETWORK
+        FaxMessages.ERROR_MONSTER_NOT_IN_FAX_NETWORK.replaceAll(
+          `{monster}`,
+          monsters[0].name
+        )
       );
 
       return null;
@@ -123,18 +118,16 @@ export class FaxOperations {
       requester: player,
       fax: monsters[0],
       requested: Math.round(Date.now() / 1000),
-      outcome: FaxMessages.ERROR_INTERNAL_ERROR
+      outcome: FaxMessages.ERROR_INTERNAL_ERROR,
+      request: message
     };
-    const operator =
-      this.controller.settings.botOperator ?? "{Operator Not Set}";
 
     const faxAttempt = new PlayerFaxRequest(
       this.getClient(),
       player,
       monsters[0],
       clanInfo,
-      faxData,
-      operator
+      faxData
     );
 
     addLog(
@@ -172,9 +165,14 @@ export class FaxOperations {
   }
 
   async joinDefaultClan() {
-    const defaultClan = getClanById(this.settings.defaultClan);
+    if (this.getClient().getCurrentClan()?.id == config.DEFAULT_CLAN) {
+      return;
+    }
 
-    await this.getClient().joinClanForcibly(defaultClan);
+    await this.getClient().joinClanForcibly(
+      getClanById(config.DEFAULT_CLAN),
+      `be in default clan`
+    );
   }
 
   async dumpFax(
@@ -182,10 +180,13 @@ export class FaxOperations {
     silent: boolean = false
   ): Promise<boolean> {
     addLog(`Now getting rid of the fax on hand`);
-    const dumpClan = getClanById(this.settings.faxDumpClan);
-    const joinSource = await this.getClient().joinClanForcibly(dumpClan);
+    const dumpClan = getClanById(config.FAX_DUMP_CLAN);
+    const joinSource = await this.getClient().joinClanForcibly(
+      dumpClan,
+      `dump fax`
+    );
 
-    if (joinSource != "Joined") {
+    if (joinSource != `Joined`) {
       addLog(`Failed to join fax dump clan: ${joinSource}`);
 
       if (!silent && faxAttempt != null) {
@@ -195,8 +196,8 @@ export class FaxOperations {
       return false;
     }
 
-    const result = await this.getClient().useFaxMachine("sendfax");
-    const hasFax = result != "Sent Fax" && result != "Illegal Clan";
+    const result = await this.getClient().useFaxMachine(`sendfax`);
+    const hasFax = result != `Sent Fax` && result != `Illegal Clan`;
 
     if (faxAttempt != null) {
       faxAttempt.hasFax = hasFax;
@@ -235,10 +236,13 @@ export class FaxOperations {
       }
     }
 
-    const joinSource = await this.getClient().joinClanForcibly({
-      id: monsterClan.clanId,
-      name: monsterClan.clanName
-    });
+    const joinSource = await this.getClient().joinClanForcibly(
+      {
+        id: monsterClan.clanId,
+        name: monsterClan.clanName
+      },
+      `grab fax`
+    );
 
     const joinedFaxClan = await this.joinedFaxClanCleanly(
       monsterClan,
@@ -302,17 +306,17 @@ export class FaxOperations {
     monsterClan: FaxClanData,
     faxAttempt: FaxRequest
   ): Promise<FaxOutcome> {
-    const fax = await this.getClient().useFaxMachine("receivefax");
+    const fax = await this.getClient().useFaxMachine(`receivefax`);
     faxAttempt.hasFax =
-      faxAttempt.hasFax || fax == "Already have fax" || fax == "Grabbed Fax";
+      faxAttempt.hasFax || fax == `Already have fax` || fax == `Grabbed Fax`;
 
-    if (fax == "Already have fax") {
+    if (fax == `Already have fax`) {
       addLog(`Had a fax on hand unexpectably, now dumping`);
 
       if (await this.dumpFax(faxAttempt)) {
         return await this.acquireFax(faxAttempt);
       }
-    } else if (fax == "No Fax Loaded" || fax == "No Fax Machine") {
+    } else if (fax == `No Fax Loaded` || fax == `No Fax Machine`) {
       setFaxMonster(monsterClan, null, null);
 
       addLog(
@@ -320,7 +324,7 @@ export class FaxOperations {
       );
 
       return FaxOutcome.TRY_AGAIN;
-    } else if (fax == "Unknown") {
+    } else if (fax == `Unknown`) {
       faxAttempt.notifyUpdate(FaxMessages.ERROR_UNKNOWN_FAX_MACHINE_STATE);
       addLog(`Unknown fax machine state, no further information`);
 
@@ -332,20 +336,21 @@ export class FaxOperations {
 
   async joinedDestClanCleanly(faxAttempt: FaxRequest): Promise<FaxOutcome> {
     const joinTarget = await this.getClient().joinClan(
-      await faxAttempt.getClan()
+      await faxAttempt.getClan(),
+      `deliver fax`
     );
 
-    if (joinTarget == "Not Whitelisted") {
+    if (joinTarget == `Not Whitelisted`) {
       faxAttempt.notifyUpdate(FaxMessages.ERROR_NOT_WHITELISTED_YOUR_CLAN);
       addLog(`Not whitelisted to clan '${(await faxAttempt.getClan()).name}'`);
 
       return FaxOutcome.FAILED;
-    } else if (joinTarget == "Am Clan Leader") {
+    } else if (joinTarget == `Am Clan Leader`) {
       faxAttempt.notifyUpdate(FaxMessages.ERROR_TRAPPED_IN_CLAN);
       addLog(`Failed to join target clan, I am clan leader and trapped`);
 
       return FaxOutcome.FAILED;
-    } else if (joinTarget != "Joined") {
+    } else if (joinTarget != `Joined`) {
       faxAttempt.notifyUpdate(FaxMessages.ERROR_JOINING_YOUR_CLAN);
       addLog(
         `Unknown error while trying to join target clan, no further information`
@@ -362,19 +367,19 @@ export class FaxOperations {
     joinSource: ClanJoinAttempt,
     faxAttempt: FaxRequest
   ): Promise<FaxOutcome> {
-    if (joinSource == "Not Whitelisted") {
+    if (joinSource == `Not Whitelisted`) {
       setFaxMonster(monsterClan, null, null);
       addLog(
         `Removed ${monsterClan.clanName} from fax network, we're not whitelisted`
       );
 
       return FaxOutcome.TRY_AGAIN;
-    } else if (joinSource == "Am Clan Leader") {
+    } else if (joinSource == `Am Clan Leader`) {
       faxAttempt.notifyUpdate(FaxMessages.ERROR_TRAPPED_IN_CLAN);
       addLog(`I am trapped in the clan as clan leader`);
 
       return FaxOutcome.FAILED;
-    } else if (joinSource != "Joined") {
+    } else if (joinSource != `Joined`) {
       faxAttempt.notifyUpdate(FaxMessages.ERROR_UNABLE_JOIN_SOURCE_CLAN);
       addLog(`Unable to join clan, no further information known`);
 
@@ -385,13 +390,12 @@ export class FaxOperations {
   }
 
   async sendFax(faxAttempt: PlayerFaxRequest): Promise<FaxOutcome> {
-    const faxResult = await this.getClient().useFaxMachine("sendfax");
+    const faxResult = await this.getClient().useFaxMachine(`sendfax`);
     faxAttempt.hasFax =
-      faxResult != "Sent Fax" && faxResult != "Have no fax to send";
+      faxResult != `Sent Fax` && faxResult != `Have no fax to send`;
 
-    if (faxResult == "Sent Fax") {
+    if (faxResult == `Sent Fax`) {
       faxAttempt.notifyUpdate(FaxMessages.FAX_READY);
-      setFaxed();
       addLog(
         `Completed fax request from ${faxAttempt.player.name} for monster ${faxAttempt.monster.name}`
       );
@@ -400,13 +404,13 @@ export class FaxOperations {
     }
 
     // If we got this far, its a failure
-    if (faxResult == "No Fax Machine") {
+    if (faxResult == `No Fax Machine`) {
       faxAttempt.notifyUpdate(FaxMessages.ERROR_NO_FAX_MACHINE);
       addLog(`Failed to send fax, they do not have a fax machine`);
-    } else if (faxResult == "Illegal Clan") {
+    } else if (faxResult == `Illegal Clan`) {
       faxAttempt.notifyUpdate(FaxMessages.ERROR_ILLEGAL_CLAN);
       addLog(`Attempted to send a fax to a source fax clan`);
-    } else if (faxResult == "No Clan Info") {
+    } else if (faxResult == `No Clan Info`) {
       faxAttempt.notifyUpdate(FaxMessages.ERROR_UNKNOWN_CLAN);
       addLog(`Failed to send fax, unknown clan information`);
     }
@@ -417,10 +421,13 @@ export class FaxOperations {
   async checkClanInfo(clan: KoLClan) {
     addLog(`Now checking up on clan ${clan.name}`);
 
-    const state = await this.getClient().joinClanForcibly(clan);
+    const state = await this.getClient().joinClanForcibly(
+      clan,
+      `fetch clan info`
+    );
 
     // Not sure what's up, lets get out of here
-    if (state != "Joined") {
+    if (state != `Joined`) {
       addLog(`Failed to join ${clan.name}: ${state}`);
 
       return;
@@ -433,10 +440,10 @@ export class FaxOperations {
       return;
     }
 
-    const fax = await this.getClient().useFaxMachine("receivefax");
+    const fax = await this.getClient().useFaxMachine(`receivefax`);
 
     // We bugged out somewhere, lets just go
-    if (fax == "Already have fax" || fax == "Unknown") {
+    if (fax == `Already have fax` || fax == `Unknown`) {
       addLog(
         `Unexpectably bugged out somewhere when checking clan fax: ${fax}`
       );
@@ -450,12 +457,12 @@ export class FaxOperations {
     const data: FaxClanData = {
       clanId: newClan.id,
       clanName: newClan.name,
-      clanTitle: newClan.title ?? "",
+      clanTitle: newClan.title ?? ``,
       clanLastChecked: Math.round(Date.now() / 1000),
       clanFirstAdded: Math.round(Date.now() / 1000)
     };
 
-    if (fax == "Grabbed Fax") {
+    if (fax == `Grabbed Fax`) {
       const photo = await this.getClient().getPhotoInfo();
 
       if (photo == null || photo.name == null) {
@@ -472,15 +479,7 @@ export class FaxOperations {
         await tryUpdateMonsters();
       }
 
-      data.faxMonster = photo.name;
-      data.faxMonsterLastChanged = Math.round(Date.now() / 1000);
-
-      // If we've been here before and we saw the same monster
-      if (oldData != null && photo.name == oldData.faxMonster) {
-        // Take the monster ID
-        data.faxMonsterId = oldData.faxMonsterId;
-        data.faxMonsterLastChanged = oldData.faxMonsterLastChanged;
-      }
+      setFaxMonster(data, photo.name, null);
     } else if (oldData != null && oldData.faxMonster != null) {
       // Something went wrong, lets not get into it
       return;

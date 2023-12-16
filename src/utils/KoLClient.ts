@@ -1,30 +1,30 @@
-import axios, { Axios, AxiosResponse } from "axios";
-import { Agent as httpsAgent } from "https";
-import { Agent as httpAgent } from "http";
-import {
+import { getClanDataById, getClanType } from "../faxbot/managers/ClanManager";
+import { addLog } from "../Settings";
+import type {
   ClanJoinAttempt,
   CombatMacro,
   FaxMachine,
-  KOLCredentials,
-  KOLMessage,
   KoLClan,
+  KOLCredentials,
   KoLEffect,
+  KOLMessage,
   KoLStatus,
   KoLUser,
   PhotoInfo,
   UserClan,
   UserInfo
 } from "./Typings";
-
-import { Mutex } from "async-mutex";
 import {
   getSecondsToNearestRollover,
   getSecondsToRollover,
   splitMessage
 } from "./Utils";
+import { Mutex } from "async-mutex";
+import type { Axios, AxiosResponse } from "axios";
+import axios from "axios";
 import { readFileSync } from "fs";
-import { addLog } from "../Settings";
-import { getClanDataById, getClanType } from "../faxbot/managers/ClanManager";
+import { Agent as httpAgent } from "http";
+import { Agent as httpsAgent } from "https";
 
 axios.defaults.timeout = 30000;
 axios.defaults.httpAgent = new httpAgent({ keepAlive: true });
@@ -37,23 +37,23 @@ export class KoLClient {
   private _isLoggedOut: boolean = true;
   private mutex = new Mutex();
   private currentClan: UserClan;
-  private _lastFetchedMessages: string = "0";
+  private _lastFetchedMessages: string = `0`;
   private stuckInFight: boolean = false;
   private lastStatus: KoLStatus;
   private axios: Axios;
 
   constructor(username: string, password: string) {
-    this._player = { name: username, id: "" };
+    this._player = { name: username, id: `` };
 
     this._loginParameters = new URLSearchParams();
-    this._loginParameters.append("loggingin", "Yup.");
-    this._loginParameters.append("loginname", username);
-    this._loginParameters.append("password", password);
-    this._loginParameters.append("secure", "0");
-    this._loginParameters.append("submitbutton", "Log In");
+    this._loginParameters.append(`loggingin`, `Yup.`);
+    this._loginParameters.append(`loginname`, username);
+    this._loginParameters.append(`password`, password);
+    this._loginParameters.append(`secure`, `0`);
+    this._loginParameters.append(`submitbutton`, `Log In`);
 
     this.axios = axios.create({
-      baseURL: "https://www.kingdomofloathing.com/",
+      baseURL: `https://www.kingdomofloathing.com/`,
       timeout: 30000,
       httpAgent: new httpAgent({ keepAlive: true }),
       httpsAgent: new httpsAgent({ keepAlive: true })
@@ -119,13 +119,13 @@ export class KoLClient {
   }
 
   isFightPage(page: string): boolean {
-    return page.includes(" action=fight.php method=post>");
+    return page.includes(` action=fight.php method=post>`);
   }
 
   async fetchNewMessages(): Promise<KOLMessage[]> {
     try {
       const newChatMessagesResponse = await this.visitUrl(
-        "newchatmessages.php",
+        `newchatmessages.php`,
         {
           j: 1,
           lasttime: this._lastFetchedMessages
@@ -136,14 +136,14 @@ export class KoLClient {
         return [];
       }
 
-      this._lastFetchedMessages = newChatMessagesResponse["last"];
+      this._lastFetchedMessages = newChatMessagesResponse[`last`];
 
-      const newWhispers: KOLMessage[] = newChatMessagesResponse["msgs"];
+      const newWhispers: KOLMessage[] = newChatMessagesResponse[`msgs`];
 
       return newWhispers;
     } catch (e) {
       addLog(
-        "Errored when trying to pull messages for " + this.getUsername(),
+        `Errored when trying to pull messages for ` + this.getUsername(),
         e
       );
     }
@@ -157,38 +157,38 @@ export class KoLClient {
     }
 
     try {
-      const apiResponse = await this.axios.get("api.php", {
+      const apiResponse = await this.axios.get(`api.php`, {
         maxRedirects: 0,
         withCredentials: true,
         headers: {
-          cookie: this._credentials?.sessionCookies || ""
+          cookie: this._credentials?.sessionCookies || ``
         },
         params: {
-          what: "status",
-          for: "FaxBot"
+          what: `status`,
+          for: `FaxBot`
         }
       });
 
       this._isLoggedOut = !(
         apiResponse &&
         apiResponse.data &&
-        apiResponse.data["name"]
+        apiResponse.data[`name`]
       );
 
       return !this.isLoggedOut();
     } catch (e) {
       this._isLoggedOut = true;
 
-      addLog("Login check failed, returning false to be safe.", e);
+      addLog(`Login check failed, returning false to be safe.`, e);
 
       return false;
     }
   }
 
   async getInventory(): Promise<Map<number, number>> {
-    const apiResponse = await this.visitUrl("api.php", {
-      what: "inventory",
-      for: "me"
+    const apiResponse = await this.visitUrl(`api.php`, {
+      what: `inventory`,
+      for: `me`
     });
 
     const map: Map<number, number> = new Map();
@@ -199,7 +199,7 @@ export class KoLClient {
 
     for (const [key, value] of Object.entries(apiResponse)) {
       if (
-        typeof value != "string" ||
+        typeof value != `string` ||
         !/^\d+$/.test(key) ||
         !/^\d+$/.test(value)
       ) {
@@ -220,11 +220,11 @@ export class KoLClient {
       graf: `/whois ${name}`
     });
 
-    const match = page["output"].match(/">([^(<>)[]+) \(#(\d+)\)</);
+    const match = page[`output`].match(/">([^(<>)[]+) \(#(\d+)\)</);
 
     if (match == null) {
       addLog(
-        `Failed to lookup '${name}', ${JSON.stringify(page)}, ${page["output"]}`
+        `Failed to lookup '${name}', ${JSON.stringify(page)}, ${page[`output`]}`
       );
 
       return null;
@@ -244,16 +244,16 @@ export class KoLClient {
   ) {
     let currentItem: number = 1;
     const args = {
-      action: "send",
+      action: `send`,
       towho: target.toString(),
       message: message,
-      savecopy: "on",
-      sendmeat: meat > 0 ? meat.toString() : ""
+      savecopy: `on`,
+      sendmeat: meat > 0 ? meat.toString() : ``
     };
 
     for (const [item, count] of items) {
-      args["howmany" + currentItem] = count.toString();
-      args["whichitem" + currentItem] = item.toString();
+      args[`howmany` + currentItem] = count.toString();
+      args[`whichitem` + currentItem] = item.toString();
       currentItem++;
     }
 
@@ -261,29 +261,29 @@ export class KoLClient {
   }
 
   async getStatus(): Promise<KoLStatus> {
-    const apiResponse = await this.visitUrl("api.php", {
-      what: "status",
-      for: "FaxBot"
+    const apiResponse = await this.visitUrl(`api.php`, {
+      what: `status`,
+      for: `FaxBot`
     });
 
-    if (!apiResponse || !apiResponse["equipment"]) {
-      throw "Error fetching api on " + this.getUsername() + ":" + apiResponse;
+    if (!apiResponse || !apiResponse[`equipment`]) {
+      throw `Error fetching api on ` + this.getUsername() + `:` + apiResponse;
     }
 
-    this._credentials.pwdhash = apiResponse["pwd"];
+    this._credentials.pwdhash = apiResponse[`pwd`];
 
     this._player = {
-      id: apiResponse["playerid"],
-      name: apiResponse["name"]
+      id: apiResponse[`playerid`],
+      name: apiResponse[`name`]
     };
 
     const equipment = new Map();
-    const equips = apiResponse["equipment"];
+    const equips = apiResponse[`equipment`];
     const effects: KoLEffect[] = [];
 
     for (const [key, value] of Object.entries(equips)) {
       if (
-        typeof value != "string" ||
+        typeof value != `string` ||
         !/^\d+$/.test(key) ||
         !/^\d+$/.test(value)
       ) {
@@ -293,10 +293,8 @@ export class KoLClient {
       equipment.set(key, parseInt(value));
     }
 
-    if (apiResponse["effects"]) {
-      for (const apiEffect of Object.values(
-        apiResponse["effects"]
-      ) as string[][]) {
+    if (apiResponse[`effects`]) {
+      for (const apiEffect of Object.values(apiResponse[`effects`])) {
         // description-UUID [Name, Duration, Shorthand ID, source, Effect ID]
         const effect: KoLEffect = {
           name: apiEffect[0],
@@ -314,26 +312,26 @@ export class KoLClient {
 
     const status = {
       fetched: Date.now(),
-      name: apiResponse["name"],
-      playerid: apiResponse["playerid"],
-      level: parseInt(apiResponse["level"]) || 1,
-      adventures: parseInt(apiResponse["adventures"] ?? "10"),
-      meat: parseInt(apiResponse["meat"]) || 0,
-      drunk: parseInt(apiResponse["drunk"]) || 0,
-      full: parseInt(apiResponse["full"]) || 0,
-      spleen: parseInt(apiResponse["spleen"]) || 0,
-      hp: parseInt(apiResponse["hp"]) || 0,
-      mp: parseInt(apiResponse["mp"]) || 0,
-      maxHP: parseInt(apiResponse["maxhp"]) || 0,
-      maxMP: parseInt(apiResponse["maxmp"]) || 0,
-      familiar: apiResponse["familiar"]
-        ? parseInt(apiResponse["familiar"])
+      name: apiResponse[`name`],
+      playerid: apiResponse[`playerid`],
+      level: parseInt(apiResponse[`level`]) || 1,
+      adventures: parseInt(apiResponse[`adventures`] ?? `10`),
+      meat: parseInt(apiResponse[`meat`]) || 0,
+      drunk: parseInt(apiResponse[`drunk`]) || 0,
+      full: parseInt(apiResponse[`full`]) || 0,
+      spleen: parseInt(apiResponse[`spleen`]) || 0,
+      hp: parseInt(apiResponse[`hp`]) || 0,
+      mp: parseInt(apiResponse[`mp`]) || 0,
+      maxHP: parseInt(apiResponse[`maxhp`]) || 0,
+      maxMP: parseInt(apiResponse[`maxmp`]) || 0,
+      familiar: apiResponse[`familiar`]
+        ? parseInt(apiResponse[`familiar`])
         : undefined,
       equipment: equipment,
-      rollover: parseInt(apiResponse["rollover"]),
-      turnsPlayed: parseInt(apiResponse["turnsplayed"]) || 0,
+      rollover: parseInt(apiResponse[`rollover`]),
+      turnsPlayed: parseInt(apiResponse[`turnsplayed`]) || 0,
       effects: effects,
-      daynumber: parseInt(apiResponse["daynumber"]) || 0
+      daynumber: parseInt(apiResponse[`daynumber`]) || 0
     };
 
     this.lastStatus = status;
@@ -352,12 +350,12 @@ export class KoLClient {
       this._credentials = undefined;
 
       addLog(
-        `Not logged in. Logging in as ${this._loginParameters.get("loginname")}`
+        `Not logged in. Logging in as ${this._loginParameters.get(`loginname`)}`
       );
 
       try {
         const loginResponse = await this.axios.post(
-          "login.php",
+          `login.php`,
           this._loginParameters,
           {
             data: this._loginParameters,
@@ -366,15 +364,15 @@ export class KoLClient {
           }
         );
 
-        if (!loginResponse.headers["set-cookie"]) {
-          addLog("Login failed.. Headers missing");
+        if (!loginResponse.headers[`set-cookie`]) {
+          addLog(`Login failed.. Headers missing`);
 
           return false;
         }
 
-        const sessionCookies = loginResponse.headers["set-cookie"]
-          .map((cookie: string) => cookie.split(";")[0])
-          .join("; ");
+        const sessionCookies = loginResponse.headers[`set-cookie`]
+          .map((cookie: string) => cookie.split(`;`)[0])
+          .join(`; `);
         this._credentials = { sessionCookies: sessionCookies, pwdhash: null };
         await this.getStatus();
 
@@ -382,7 +380,7 @@ export class KoLClient {
           `Login Success. Logged in as ${this._player.name} (#${this._player.id})`
         );
         this._isLoggedOut = false;
-        const fightPage = await this.visitUrl("fight.php");
+        const fightPage = await this.visitUrl(`fight.php`);
 
         this.stuckInFight = this.isFightPage(fightPage);
 
@@ -390,7 +388,7 @@ export class KoLClient {
 
         return true;
       } catch (e) {
-        addLog("Login failed.. Got an error.", e);
+        addLog(`Login failed.. Got an error.`, e);
         this._isLoggedOut = true;
 
         return false;
@@ -403,7 +401,7 @@ export class KoLClient {
   async visitUrl(
     url: string,
     parameters: Record<string, any> = {},
-    method: "GET" | "POST" = "POST"
+    method: "GET" | "POST" = `POST`
   ): Promise<string> {
     const params = new URLSearchParams({
       ...(this._credentials?.pwdhash
@@ -415,11 +413,11 @@ export class KoLClient {
     try {
       let page: AxiosResponse<any>;
 
-      if (method == "POST") {
+      if (method == `POST`) {
         page = await this.axios.post(`${url}`, params, {
           withCredentials: true,
           headers: {
-            cookie: this._credentials?.sessionCookies || ""
+            cookie: this._credentials?.sessionCookies || ``
           },
           data: params,
           validateStatus: (status) => status === 200
@@ -428,19 +426,19 @@ export class KoLClient {
         page = await this.axios.get(`${url}`, {
           withCredentials: true,
           headers: {
-            cookie: this._credentials?.sessionCookies || ""
+            cookie: this._credentials?.sessionCookies || ``
           },
           data: params,
           validateStatus: (status) => status === 200
         });
       }
 
-      if (page.headers["set-cookie"] && this._credentials != null) {
+      if (page.headers[`set-cookie`] && this._credentials != null) {
         const cookies: any = {};
 
         for (const [name, cookie] of this._credentials.sessionCookies
-          .split("; ")
-          .map((s) => s.split("="))) {
+          .split(`; `)
+          .map((s) => s.split(`=`))) {
           if (!cookie) {
             continue;
           }
@@ -448,8 +446,8 @@ export class KoLClient {
           cookies[name] = cookie;
         }
 
-        const sessionCookies = page.headers["set-cookie"].map(
-          (cookie: string) => cookie.split(";")[0].trim().split("=")
+        const sessionCookies = page.headers[`set-cookie`].map(
+          (cookie: string) => cookie.split(`;`)[0].trim().split(`=`)
         );
 
         for (const [name, cookie] of sessionCookies) {
@@ -458,7 +456,7 @@ export class KoLClient {
 
         this._credentials.sessionCookies = Object.entries(cookies)
           .map(([key, value]) => `${key}=${value}`)
-          .join("; ");
+          .join(`; `);
       }
 
       return page.data;
@@ -485,11 +483,11 @@ export class KoLClient {
    * Can return undefined when in valhalla, can have nullsy clan
    */
   async getUserInfo(playerId: number): Promise<UserInfo | undefined> {
-    const myClanResponse = await this.visitUrl("showplayer.php", {
+    const myClanResponse = await this.visitUrl(`showplayer.php`, {
       who: playerId
     });
 
-    const clanMatch = (myClanResponse as string).match(
+    const clanMatch = myClanResponse.match(
       /<b><a class=nounder href="showclan\.php\?whichclan=(\d+)">(.*?)<\/a><\/b>(?:<br>Title: <b>([^>]*)<\/b><\/td>)?/
     );
 
@@ -506,7 +504,7 @@ export class KoLClient {
 
     if (clanMatch != null) {
       user.clan = {
-        id: clanMatch[1],
+        id: parseInt(clanMatch[1]),
         name: clanMatch[2],
         title: clanMatch[3]
       };
@@ -516,67 +514,67 @@ export class KoLClient {
   }
 
   async useFaxMachine(action: "sendfax" | "receivefax"): Promise<FaxMachine> {
-    if (action != "receivefax") {
+    if (action != `receivefax`) {
       if (this.currentClan == null) {
-        return "No Clan Info";
+        return `No Clan Info`;
       }
 
       const clan = getClanDataById(this.currentClan.id);
 
-      if (clan == null || getClanType(clan) == "Fax Source") {
-        return "Illegal Clan";
+      if (clan == null || getClanType(clan) == `Fax Source`) {
+        return `Illegal Clan`;
       }
     }
 
     const result = await this.visitUrl(`clan_viplounge.php`, {
       preaction: action,
-      whichfloor: "2"
+      whichfloor: `2`
     });
 
     if (
-      result.includes("You pop your photocopy into the tray, dial the number")
+      result.includes(`You pop your photocopy into the tray, dial the number`)
     ) {
-      return "Sent Fax";
+      return `Sent Fax`;
     }
 
-    if (result.includes("You get the jam cleared and hit a bunch of buttons")) {
-      return "Grabbed Fax";
+    if (result.includes(`You get the jam cleared and hit a bunch of buttons`)) {
+      return `Grabbed Fax`;
     }
 
     if (
       result.includes(
-        "You sit for a while waiting for an important fax, but one doesn't show up"
+        `You sit for a while waiting for an important fax, but one doesn't show up`
       )
     ) {
-      return "Already have fax";
+      return `Already have fax`;
     }
 
     if (
       result.includes(
-        "It turns out to just be a blank sheet of paper, so you throw it away"
+        `It turns out to just be a blank sheet of paper, so you throw it away`
       )
     ) {
-      return "No Fax Loaded";
+      return `No Fax Loaded`;
     }
 
     if (
-      result.includes("<b>Clan VIP Lounge (Attic)</b>") &&
+      result.includes(`<b>Clan VIP Lounge (Attic)</b>`) &&
       !result.includes(
-        "<a href=clan_viplounge.php?action=faxmachine&whichfloor=2>"
+        `<a href=clan_viplounge.php?action=faxmachine&whichfloor=2>`
       )
     ) {
-      return "No Fax Machine";
+      return `No Fax Machine`;
     }
 
-    if (result.includes("That's not a thing.")) {
-      return "Have no fax to send";
+    if (result.includes(`That's not a thing.`)) {
+      return `Have no fax to send`;
     }
 
-    return "Unknown";
+    return `Unknown`;
   }
 
   async getPhotoInfo(): Promise<PhotoInfo> {
-    const item = await this.visitUrl("desc_item.php?whichitem=835898159");
+    const item = await this.visitUrl(`desc_item.php?whichitem=835898159`);
 
     const match = item.match(/likeness of (a|an) (.*?) on it/);
 
@@ -590,7 +588,7 @@ export class KoLClient {
   }
 
   async start() {
-    addLog("Starting " + this.getUsername() + "...");
+    addLog(`Starting ` + this.getUsername() + `...`);
 
     while (this.isLoggedOut()) {
       await this.logIn();
@@ -603,7 +601,7 @@ export class KoLClient {
   }
 
   async useChatMacro(macro: string): Promise<string> {
-    return await this.visitUrl("submitnewchat.php", {
+    return await this.visitUrl(`submitnewchat.php`, {
       graf: `/clan ${macro}`,
       j: 1
     });
@@ -616,7 +614,7 @@ export class KoLClient {
   }
 
   async getClanLeader(clanId: string): Promise<number | undefined> {
-    const page = await this.visitUrl("showclan.php", { whichclan: clanId });
+    const page = await this.visitUrl(`showclan.php`, { whichclan: clanId });
 
     if (!page) {
       return undefined;
@@ -634,7 +632,7 @@ export class KoLClient {
   }
 
   async getNewLeader(): Promise<KoLUser> {
-    const members = (await this.visitUrl("clan_members.php")) as string;
+    const members = await this.visitUrl(`clan_members.php`);
 
     if (!members) {
       return undefined;
@@ -675,11 +673,11 @@ export class KoLClient {
         newLeader.name
       } (#${newLeader.id})`
     );
-    const response = (await this.visitUrl("clan_admin.php", {
-      action: "changeleader",
+    const response = await this.visitUrl(`clan_admin.php`, {
+      action: `changeleader`,
       newleader: newLeader.id,
-      confirm: "on"
-    })) as string;
+      confirm: `on`
+    });
 
     return /Leadership of clan transferred. A leader is no longer you./.test(
       response
@@ -688,7 +686,7 @@ export class KoLClient {
 
   async getWhitelists(): Promise<KoLClan[]> {
     const clanRecuiterResponse = await this.visitUrl(
-      "clan_signup.php?place=managewhitelists"
+      `clan_signup.php?place=managewhitelists`
     );
 
     if (!clanRecuiterResponse) {
@@ -701,7 +699,7 @@ export class KoLClient {
       /<a href=showclan\.php\?whichclan=(\d+) class=nounder><b>([^>]*?)<\/b>(?=.* bgcolor=blue><b>Apply to a Clan<\/b>)/gm
     )) {
       clans.push({
-        id: clanId,
+        id: parseInt(clanId),
         name: clanName
       });
     }
@@ -721,10 +719,13 @@ export class KoLClient {
     return this.currentClan;
   }
 
-  async joinClanForcibly(clan: UserClan): Promise<ClanJoinAttempt> {
-    let res = await this.joinClan(clan);
+  async joinClanForcibly(
+    clan: UserClan,
+    goal: string
+  ): Promise<ClanJoinAttempt> {
+    let res = await this.joinClan(clan, goal);
 
-    if (res == "Am Clan Leader") {
+    if (res == `Am Clan Leader`) {
       const newLeader = await this.getNewLeader();
 
       if (newLeader == null) {
@@ -737,7 +738,7 @@ export class KoLClient {
       }
 
       await this.transferClanLeadership(newLeader);
-      res = await this.joinClan(clan);
+      res = await this.joinClan(clan, goal);
     }
 
     return res;
@@ -745,24 +746,24 @@ export class KoLClient {
 
   async disbandClan(): Promise<boolean> {
     const res = await this.visitUrl(`clan_admin.php`, {
-      action: "disband",
-      confirm: "on"
+      action: `disband`,
+      confirm: `on`
     });
 
-    return res.includes("bgcolor=blue><b>Apply to a Clan</b>");
+    return res.includes(`bgcolor=blue><b>Apply to a Clan</b>`);
   }
 
-  async joinClan(clan: UserClan): Promise<ClanJoinAttempt> {
-    const page = await this.visitUrl("showclan.php", {
+  async joinClan(clan: UserClan, goal: string): Promise<ClanJoinAttempt> {
+    const page = await this.visitUrl(`showclan.php`, {
       whichclan: clan.id,
-      action: "joinclan",
-      confirm: "1",
+      action: `joinclan`,
+      confirm: `1`,
       ajax: 0,
       _: Date.now()
     });
 
     let joinResult = page;
-    const div = page.indexOf("</center></td>");
+    const div = page.indexOf(`</center></td>`);
 
     if (div > 0) {
       joinResult = page.substring(0, div);
@@ -770,24 +771,24 @@ export class KoLClient {
 
     if (
       joinResult.includes(
-        "You can't apply to a new clan when you're the leader of an existing clan."
+        `You can't apply to a new clan when you're the leader of an existing clan.`
       )
     ) {
-      return "Am Clan Leader";
+      return `Am Clan Leader`;
     }
 
-    if (joinResult.includes("You have submitted a request to join")) {
-      return "Not Whitelisted";
+    if (joinResult.includes(`You have submitted a request to join`)) {
+      return `Not Whitelisted`;
     }
 
     if (
-      joinResult.includes("You have now changed your allegiance.") ||
-      joinResult.includes("You can't apply to a clan you're already in.")
+      joinResult.includes(`You have now changed your allegiance.`) ||
+      joinResult.includes(`You can't apply to a clan you're already in.`)
     ) {
       this.currentClan = clan;
-      addLog(`Now in clan ${clan.name}`);
+      addLog(`Now in clan ${clan.name} to: ${goal}`);
 
-      return "Joined";
+      return `Joined`;
     }
 
     const clanMatch = page.match(/<b>Clan Hall<\/b>.+?<b>(.+?)<\/b>/);
@@ -795,25 +796,25 @@ export class KoLClient {
     // Backup!
     if (clanMatch != null && clanMatch[1] === clan.name) {
       this.currentClan = clan;
-      addLog(`Now in clan ${clan.name}`);
+      addLog(`Now in clan ${clan.name} to: ${goal}`);
 
-      return "Joined";
+      return `Joined`;
     }
 
     // The fallback when there was an unexpected error, such as not being in a clan. As it doesn't give us a proper message
     const myClan = await this.myClan();
 
     if (myClan != null) {
-      addLog(`Now in clan ${myClan.name}`);
+      addLog(`Now in clan ${myClan.name} to: ${goal}`);
     }
 
     if (myClan != null && myClan.id == clan.id) {
       this.currentClan = myClan;
 
-      return "Joined";
+      return `Joined`;
     }
 
-    return "Unknown";
+    return `Unknown`;
   }
 
   getCurrentClan() {
@@ -833,7 +834,7 @@ export class KoLClient {
       // Do this just incase
       addLog(`Not in fight apparently, now visiting fight.php to make sure..`);
       this.stuckInFight = this.isFightPage(
-        (page = await this.visitUrl("fight.php"))
+        (page = await this.visitUrl(`fight.php`))
       );
       addLog(`The outcome of that was, stuck in fight: ${this.stuckInFight}`);
     }
@@ -846,9 +847,7 @@ export class KoLClient {
   }
 
   async getCombatMacros(): Promise<CombatMacro[]> {
-    const apiResponse = (await this.visitUrl(
-      "account_combatmacros.php"
-    )) as string;
+    const apiResponse = await this.visitUrl(`account_combatmacros.php`);
 
     if (!apiResponse) {
       return [];
@@ -869,7 +868,7 @@ export class KoLClient {
 
   async runCombatMacro(macro: string) {
     return this.visitUrl(`fight.php`, {
-      action: "macro",
+      action: `macro`,
       macrotext: encodeURIComponent(macro)
     });
   }
@@ -878,7 +877,7 @@ export class KoLClient {
     addLog(
       `Something must have gone wrong, we're trying to escape the fight with reason: ${reason}`
     );
-    const macro = readFileSync(`./data/macros/EscapeFromFight.txt`, "utf-8");
+    const macro = readFileSync(`./data/macros/EscapeFromFight.txt`, `utf-8`);
 
     return this.runCombatMacro(macro);
   }

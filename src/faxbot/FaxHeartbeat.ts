@@ -1,7 +1,7 @@
-import { Mutex } from "async-mutex";
-import { ParentController } from "../ParentController";
+import type { ParentController } from "../ParentController";
 import { FaxRollover } from "./tasks/FaxRollover";
 import { MessageHandler } from "./tasks/MessageHandler";
+import { Mutex } from "async-mutex";
 
 export class FaxHeartbeat {
   controller: ParentController;
@@ -13,10 +13,6 @@ export class FaxHeartbeat {
     this.controller = controller;
     this.rollover = new FaxRollover(controller);
     this.messages = new MessageHandler(controller);
-  }
-
-  getSettings() {
-    return this.controller.settings;
   }
 
   getFaxRunner() {

@@ -1,59 +1,37 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
-import { FaxbotDatabaseMonster, MonsterData } from "../../utils/Typings";
-import axios from "axios";
-import { setUpdatedMonsters } from "./DataManager";
-import { getFaxSourceClans } from "./ClanManager";
 import { addLog } from "../../Settings";
+import type { FaxbotDatabaseMonster, MonsterData } from "../../utils/Typings";
+import { getFaxSourceClans, setMonsterListOutdated } from "./ClanManager";
+import { loadMonstersFromDatabase, saveMonsters } from "./DatabaseManager";
+import axios from "axios";
 
-const monsterDataFile = "./data/monsters.txt";
 const monsters: MonsterData[] = [];
 
 /**
  * Only invoked when we encounter a monster ID we don't know. Should probably also invoke it every X while. Like every other week.
  */
 async function updateMonsterData() {
+  addLog(`Now rebuilding monsters from kolmafia..`);
   const fetchedFile = (
     await axios(
       `https://raw.githubusercontent.com/kolmafia/kolmafia/main/src/data/monsters.txt`,
       {
-        method: "GET",
+        method: `GET`,
         maxRedirects: 0,
         validateStatus: (status) => status === 200
       }
     )
   ).data;
 
-  writeFileSync(monsterDataFile, fetchedFile);
-  setUpdatedMonsters();
-  loadMonsters();
+  await loadMonstersByString(fetchedFile.toString());
+  await loadMonsters();
+  setMonsterListOutdated();
 }
 
-let lastUpdate = 0;
-
-export async function tryUpdateMonsters() {
-  if (lastUpdate + 12 * 60 * 60 * 1000 > Date.now()) {
-    return;
-  }
-
-  addLog(`Found unrecognized monster, trying to update our list of monsters..`);
-  lastUpdate = Date.now();
-
-  await updateMonsterData();
-}
-
-function loadMonsters() {
+async function loadMonstersByString(monstersFile: string) {
   monsters.splice(0);
 
-  if (!existsSync(monsterDataFile)) {
-    updateMonsterData();
-
-    return;
-  }
-
-  const data = readFileSync(monsterDataFile);
-
-  for (const line of data.toString().split(/[\r\n]+/)) {
-    if (line.startsWith("#")) {
+  for (const line of monstersFile.split(/[\r\n]+/)) {
+    if (line.startsWith(`#`)) {
       continue;
     }
 
@@ -69,14 +47,42 @@ function loadMonsters() {
       id: parseInt(match[2]),
       name: match[1],
       manualName: manual == null ? null : manual[1] ?? manual[2],
-      category: line.includes("NOWISH") ? "Unwishable" : null
+      category: line.includes(`NOWISH`) ? `Unwishable` : null
     };
 
     monsters.push(data);
   }
 
+  await saveMonsters(monsters);
+}
+
+let lastUpdate = 0;
+
+export async function tryUpdateMonsters() {
+  if (lastUpdate + 12 * 60 * 60 * 1000 > Date.now()) {
+    return;
+  }
+
+  addLog(`Found unrecognized monster, trying to update our list of monsters..`);
+  lastUpdate = Date.now();
+
+  await updateMonsterData();
+}
+
+export async function loadMonsters() {
+  const dbMonsters = await loadMonstersFromDatabase();
+
+  if (dbMonsters.length == 0) {
+    await updateMonsterData();
+
+    return;
+  }
+
+  monsters.splice(0);
+  monsters.push(...dbMonsters);
+
   const couldMatch = (name1: string, name2: string) => {
-    if ((name1 ?? "") == "" || (name2 ?? "") == "") {
+    if ((name1 ?? ``) == `` || (name2 ?? ``) == ``) {
       return false;
     }
 
@@ -84,12 +90,12 @@ function loadMonsters() {
     // Turn goblin (blind) into goblin
     name1 = name1
       .toLowerCase()
-      .replaceAll(/[([].+?[\])]/g, "")
-      .replaceAll(/[^a-z0-9]/g, "");
+      .replaceAll(/[([].+?[\])]/g, ``)
+      .replaceAll(/[^a-z0-9]/g, ``);
     name2 = name2
       .toLowerCase()
-      .replaceAll(/[([].+?[\])]/g, "")
-      .replaceAll(/[^a-z0-9]/g, "");
+      .replaceAll(/[([].+?[\])]/g, ``)
+      .replaceAll(/[^a-z0-9]/g, ``);
 
     return name1 == name2;
   };
@@ -113,6 +119,8 @@ function loadMonsters() {
 
     monster.ambiguous = matches.length > 0;
   }
+
+  addLog(`Loaded ${monsters.length} monsters`);
 }
 
 export function getMonsterById(id: number): MonsterData {
@@ -125,7 +133,7 @@ export function getMonsterById(id: number): MonsterData {
 export function getMonster(identifier: string): MonsterData[] {
   // Lowercase it then replace any spaces with no-spaces
   // We're not going to get smarter about this yet
-  identifier = identifier.replaceAll(" ", "").toLowerCase();
+  identifier = identifier.replaceAll(` `, ``).toLowerCase();
 
   if (identifier.match(/^\[\d+\]/)) {
     identifier = identifier.match(/(\d+)/)[1];
@@ -140,7 +148,7 @@ export function getMonster(identifier: string): MonsterData[] {
   result = monsters.filter(
     (m) =>
       m.manualName &&
-      m.manualName.replaceAll(" ", "").toLowerCase() == identifier
+      m.manualName.replaceAll(` `, ``).toLowerCase() == identifier
   );
 
   if (result.length == 1) {
@@ -148,7 +156,7 @@ export function getMonster(identifier: string): MonsterData[] {
   }
 
   result = monsters.filter(
-    (m) => m.name && m.name.replaceAll(" ", "").toLowerCase() == identifier
+    (m) => m.name && m.name.replaceAll(` `, ``).toLowerCase() == identifier
   );
 
   if (result.length > 0) {
@@ -158,7 +166,7 @@ export function getMonster(identifier: string): MonsterData[] {
   result = monsters.filter(
     (m) =>
       m.manualName &&
-      m.manualName.replaceAll(" ", "").toLowerCase().startsWith(identifier)
+      m.manualName.replaceAll(` `, ``).toLowerCase().startsWith(identifier)
   );
 
   if (result.length > 0) {
@@ -167,7 +175,7 @@ export function getMonster(identifier: string): MonsterData[] {
 
   result = monsters.filter(
     (m) =>
-      m.name && m.name.replaceAll(" ", "").toLowerCase().startsWith(identifier)
+      m.name && m.name.replaceAll(` `, ``).toLowerCase().startsWith(identifier)
   );
 
   if (result.length > 0) {
@@ -178,13 +186,13 @@ export function getMonster(identifier: string): MonsterData[] {
   result = monsters.filter(
     (m) =>
       m.manualName &&
-      m.manualName.replaceAll(" ", "").toLowerCase().includes(identifier)
+      m.manualName.replaceAll(` `, ``).toLowerCase().includes(identifier)
   );
 
   if (result.length == 0) {
     result = monsters.filter(
       (m) =>
-        m.name && m.name.replaceAll(" ", "").toLowerCase().includes(identifier)
+        m.name && m.name.replaceAll(` `, ``).toLowerCase().includes(identifier)
     );
   }
 
@@ -212,7 +220,7 @@ export function createMonsterList(): FaxbotDatabaseMonster[] {
       name: monsterData.name,
       actual_name: monsterData.name,
       command: `[${monsterData.id}]${monsterData.name}`,
-      category: monsterData.category ?? "None"
+      category: monsterData.category ?? `None`
     };
 
     monsterList.push(monster);
@@ -224,5 +232,3 @@ export function createMonsterList(): FaxbotDatabaseMonster[] {
 export function getMonsters() {
   return monsters;
 }
-
-loadMonsters();

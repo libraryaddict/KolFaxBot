@@ -1,11 +1,12 @@
-import { FaxMessages } from "../../utils/FaxMessages";
-import { KoLClient } from "../../utils/KoLClient";
-import {
-  KoLClan,
+import { config } from "../../config";
+import type { FaxMessages } from "../../utils/FaxMessages";
+import type { KoLClient } from "../../utils/KoLClient";
+import type {
+  DepositedFax,
   FaxClanData,
+  KoLClan,
   KoLUser,
-  MonsterData,
-  DepositedFax
+  MonsterData
 } from "../../utils/Typings";
 import { getClanByMonster } from "../managers/ClanManager";
 
@@ -58,7 +59,7 @@ export class RolloverFaxRequest implements FaxRequest {
   }
 
   getRequester(): string {
-    return "<Fax Rollover>";
+    return `<Fax Rollover>`;
   }
 }
 
@@ -69,22 +70,19 @@ export class PlayerFaxRequest implements FaxRequest {
   targetClanPromise: Promise<KoLClan>;
   faxAttempt: DepositedFax;
   hasFax: boolean;
-  operator: string;
 
   constructor(
     client: KoLClient,
     player: KoLUser,
     monster: MonsterData,
     clan: Promise<KoLClan>,
-    fax: DepositedFax,
-    operator: string
+    fax: DepositedFax
   ) {
     this.client = client;
     this.player = player;
     this.monster = monster;
     this.targetClanPromise = clan;
     this.faxAttempt = fax;
-    this.operator = operator;
 
     clan.then((c) => {
       if (c == null) {
@@ -97,9 +95,9 @@ export class PlayerFaxRequest implements FaxRequest {
   }
 
   notifyUpdate(message: FaxMessages) {
-    let msg = message.replaceAll("{monster}", this.monster.name);
-    msg = msg.replaceAll("{operator}", this.operator);
-    msg = msg.replaceAll("{clan}", this.faxAttempt?.clanName ?? "Unknown Clan");
+    let msg = message.replaceAll(`{monster}`, this.monster.name);
+    msg = msg.replaceAll(`{operator}`, config.FAXBOT_OPERATOR);
+    msg = msg.replaceAll(`{clan}`, this.faxAttempt?.clanName ?? `Unknown Clan`);
 
     this.client.sendPrivateMessage(this.player, msg);
 
@@ -111,7 +109,13 @@ export class PlayerFaxRequest implements FaxRequest {
   }
 
   getFaxSource(): FaxClanData {
-    return getClanByMonster(this.monster);
+    const clan = getClanByMonster(this.monster);
+
+    if (clan != null) {
+      this.faxAttempt.faxClan = clan.clanId;
+    }
+
+    return clan;
   }
 
   getExpectedMonster(): string {

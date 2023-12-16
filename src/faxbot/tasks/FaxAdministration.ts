@@ -1,8 +1,11 @@
-import { ParentController } from "../../ParentController";
+import { config } from "../../config";
+import type { ParentController } from "../../ParentController";
 import { addLog } from "../../Settings";
-import { DepositedFax } from "../../utils/Typings";
-import { FaxRequest, PlayerFaxRequest } from "../faxrequests/FaxRequest";
+import type { DepositedFax } from "../../utils/Typings";
+import type { FaxRequest } from "../faxrequests/FaxRequest";
+import { PlayerFaxRequest } from "../faxrequests/FaxRequest";
 import {
+  getClanById,
   getOutdatedClans,
   getUnknownClans,
   removeInaccessibleClans,
@@ -16,10 +19,6 @@ export class FaxAdministration {
 
   constructor(controller: ParentController) {
     this.controller = controller;
-  }
-
-  getSettings() {
-    return this.controller.settings;
   }
 
   getFaxRunner() {
@@ -50,6 +49,22 @@ export class FaxAdministration {
 
     if (unknown.length == 0) {
       return;
+    }
+
+    for (const preprocess of [config.DEFAULT_CLAN, config.FAX_DUMP_CLAN]) {
+      const clan = getClanById(preprocess);
+
+      if (clan != null) {
+        continue;
+      }
+
+      const data = unknown.find((d) => d.id == preprocess);
+
+      if (data == null) {
+        throw `Expected a whitelist to the clan for ${preprocess} as defined in our settings`;
+      }
+
+      await this.getFaxRunner().checkClanInfo(clan);
     }
 
     try {

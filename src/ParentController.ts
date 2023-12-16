@@ -1,24 +1,28 @@
-import { Mutex } from "async-mutex";
-import { addLog, getAccountLogins } from "./Settings";
-import { KoLClient } from "./utils/KoLClient";
-import { FaxbotSettings } from "./utils/Typings";
-import { FaxOperations } from "./faxbot/FaxOperations";
-import { FortuneTeller } from "./faxbot/tasks/FortuneTeller";
+import { config } from "./config";
 import { FaxHeartbeat } from "./faxbot/FaxHeartbeat";
+import { FaxOperations } from "./faxbot/FaxOperations";
+import {
+  getClanById,
+  isUnknownMonsterInClanData,
+  loadClans
+} from "./faxbot/managers/ClanManager";
+import {
+  loadMonsters,
+  tryUpdateMonsters
+} from "./faxbot/managers/MonsterManager";
+import { FaxAdministration } from "./faxbot/tasks/FaxAdministration";
+import { FortuneTeller } from "./faxbot/tasks/FortuneTeller";
+import { addLog } from "./Settings";
+import { KoLClient } from "./utils/KoLClient";
 import {
   getKolDay,
   getSecondsElapsedInDay,
   getSecondsToNearestRollover,
   getSecondsToRollover
 } from "./utils/Utils";
-import { updateGithub } from "./faxbot/managers/GithubManager";
-import { isUnknownMonsterInClanData } from "./faxbot/managers/ClanManager";
-import { tryUpdateMonsters } from "./faxbot/managers/MonsterManager";
-import { FaxAdministration } from "./faxbot/tasks/FaxAdministration";
-import { setupLogging } from "./utils/DiscordUtils";
+import { Mutex } from "async-mutex";
 
 export class ParentController {
-  settings: FaxbotSettings;
   fortune: FortuneTeller;
   faxer: FaxOperations;
   faxHeartbeat: FaxHeartbeat;
@@ -27,17 +31,17 @@ export class ParentController {
   lastSeenDay: number = 0;
 
   async startController() {
-    this.settings = getAccountLogins();
-    setupLogging(this.settings);
+    await loadMonsters();
+    await loadClans();
 
-    this.client = new KoLClient(this.settings.username, this.settings.password);
+    this.client = new KoLClient(config.FAXBOT_USERNAME, config.FAXBOT_PASSWORD);
 
     await this.client.start();
 
     this.admin = new FaxAdministration(this);
     this.faxHeartbeat = new FaxHeartbeat(this);
     this.faxer = new FaxOperations(this);
-    this.fortune = new FortuneTeller(this.client, this.settings.defaultClan);
+    this.fortune = new FortuneTeller(this.client);
 
     await this.onNewDay();
     this.startBotHeartbeat();
@@ -97,12 +101,6 @@ export class ParentController {
   }
 
   async onNewDay() {
-    // Keep some accounts active by logging in, if near rollover; then wait 30 minutes
-    setTimeout(
-      () => this.keepAccountsActive(),
-      this.client.isRolloverRisk(15) ? 30 * 60 * 1000 : 1
-    );
-
     // If we're currently in a fight
     if (this.client.isStuckInFight()) {
       // If less than 5 minutes to the nearest rollover
@@ -127,17 +125,20 @@ export class ParentController {
       }
     }
 
-    // If we don't know what our current clan is, fetch it
-    if (this.client.getCurrentClan() == null) {
-      await this.client.myClan();
-    }
+    // If we've loaded our clans before
+    if (getClanById(config.DEFAULT_CLAN) != null) {
+      // If we don't know what our current clan is, fetch it
+      if (this.client.getCurrentClan() == null) {
+        await this.client.myClan();
+      }
 
-    // We are not in a clan, or are not in the normal clan. Join the default clan
-    if (
-      this.client.getCurrentClan() == null ||
-      this.client.getCurrentClan().id != this.settings.defaultClan
-    ) {
-      await this.faxer.joinDefaultClan();
+      // We are not in a clan, or are not in the normal clan. Join the default clan
+      if (
+        this.client.getCurrentClan() == null ||
+        this.client.getCurrentClan().id != config.DEFAULT_CLAN
+      ) {
+        await this.faxer.joinDefaultClan();
+      }
     }
 
     // Check out our whitelists
@@ -152,95 +153,41 @@ export class ParentController {
 
     // Update the day we've last seen
     this.lastSeenDay = getKolDay();
-    // Update github and our list of monsters
-    // TODO Update github when we update our monsters during course of a day
-    updateGithub(this.client.getUsername(), this.client.getUserID());
     addLog(`Finished running new day..`);
-  }
-
-  async keepAccountsActive() {
-    if (this.client.isRolloverRisk(13)) {
-      return;
-    }
-
-    const accounts = this.settings.maintainLeadership;
-
-    for (const accountName of Object.keys(accounts)) {
-      if (accountName.match(/[^a-zA-Z\d _]/)) {
-        addLog(`Not going to try logging into '${accountName}'`);
-        continue;
-      }
-
-      const accountPass = accounts[accountName];
-
-      if (typeof accountPass != "string") {
-        continue;
-      }
-
-      const client = new KoLClient(accountName, accountPass);
-      await client.logIn();
-    }
   }
 
   checkSettings(): boolean {
     let issues = false;
 
-    if ((this.settings.botOperator ?? "").length < 3) {
+    if ((config.FAXBOT_OPERATOR ?? ``).length < 3) {
       issues = true;
       addLog(
         `Error! Bot Operator in settings hasn't been configured properly!`
       );
     }
 
-    if (!(this.settings.defaultClan ?? "").match(/^\d{3,}$/)) {
-      issues = true;
-      addLog(
-        `Error! Default Clan in settings hasn't been configured properly!`
-      );
-    }
-
-    if (!(this.settings.faxDumpClan ?? "").match(/^\d{3,}$/)) {
-      issues = true;
-      addLog(
-        `Error! Default Clan in settings hasn't been configured properly!`
-      );
-    }
-
-    if (![true, false].includes(this.settings.runFaxRollover)) {
+    if (![true, false].includes(config.RUN_FAX_ROLLOVER)) {
       issues = true;
       addLog(
         `Error! Run Fax Rollover in settings hasn't been configured properly!`
       );
     }
 
-    if (![true, false].includes(this.settings.runFaxRolloverBurnTurns)) {
+    if (![true, false].includes(config.RUN_DANGEROUS_FAX_ROLLOVER)) {
       issues = true;
       addLog(
         `Error! Run Fax Rollover in settings hasn't been configured properly!`
       );
     }
 
-    if (
-      this.settings.discordWebhook != null &&
-      !this.settings.discordWebhook.startsWith(
-        "https://discord.com/api/webhooks/"
-      ) &&
-      !this.settings.discordWebhook.startsWith("#")
-    ) {
-      issues = true;
-      addLog(
-        `Error! Discord Webhook in settings hasn't been configured properly! Either set it to 'null', prefix with a # or properly configure it!`
-      );
-    }
-
-    if (!(this.settings.username ?? "").match(/^[a-zA-Z][\da-zA-Z _]{2,}$/)) {
+    if (!(config.FAXBOT_USERNAME ?? ``).match(/^[a-zA-Z][\da-zA-Z _]{2,}$/)) {
       issues = true;
       addLog(`Error! Username hasn't been configured properly!`);
     }
 
     if (
-      (this.settings.password ?? "").length < 6 ||
-      this.settings.username == this.settings.password
+      (config.FAXBOT_PASSWORD ?? ``).length < 6 ||
+      config.FAXBOT_USERNAME == config.FAXBOT_PASSWORD
     ) {
       issues = true;
       addLog(
@@ -248,10 +195,7 @@ export class ParentController {
       );
     }
 
-    if (
-      this.settings.allowedRefreshers == null ||
-      Array.isArray(this.settings.allowedRefreshers)
-    ) {
+    if (!/^[\d,]+$/.test(config.BOT_CONTROLLERS ?? ``)) {
       issues = true;
       addLog(`Error! allowedRefreshers hasn't been configured!`);
     }

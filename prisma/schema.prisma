@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = env("DATABASE_URL")
+}
+
+model FaxClan {
+    clanId                Int     @id @unique
+    clanName              String  @unique
+    clanTitle             String?
+    faxMonster            String?
+    faxMonsterId          Int?
+    faxMonsterLastChanged Int?
+    clanFirstAdded        Int
+    clanLastChecked       Int
+}
+
+model MonsterData {
+    monsterId  Int     @id @unique
+    mafiaName  String
+    manualName String?
+}
+
+model FaxRecord {
+    id         Int    @id @default(autoincrement())
+    playerId   Int
+    playerClan Int?
+    faxClan    Int?
+    faxRequest String
+    started    Int
+    completed  Int?
+    outcome    String
+}

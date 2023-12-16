@@ -1,8 +1,10 @@
-import { ParentController } from "../../ParentController";
+import { config } from "../../config";
+import type { ParentController } from "../../ParentController";
 import { FaxMessages } from "../../utils/FaxMessages";
-import { KOLMessage } from "../../utils/Typings";
-
-import { FaxAdministration } from "./FaxAdministration";
+import type { KOLMessage } from "../../utils/Typings";
+import { isMonsterListOutdated } from "../managers/ClanManager";
+import { updateGithub } from "../managers/GithubManager";
+import type { FaxAdministration } from "./FaxAdministration";
 
 export class MessageHandler {
   controller: ParentController;
@@ -12,10 +14,6 @@ export class MessageHandler {
   constructor(controller: ParentController) {
     this.controller = controller;
     this.admin = controller.admin;
-  }
-
-  getSettings() {
-    return this.controller.settings;
   }
 
   getFaxRunner() {
@@ -43,6 +41,13 @@ export class MessageHandler {
       return;
     }
 
+    if (isMonsterListOutdated()) {
+      updateGithub(
+        this.getClient().getUsername(),
+        this.getClient().getUserID()
+      );
+    }
+
     await this.admin.runAdministration();
   }
 
@@ -55,7 +60,7 @@ export class MessageHandler {
         message.who != null &&
         message.who.id != null &&
         message.who.id != this.getClient().getUserID() &&
-        message.type == "private"
+        message.type == `private`
       ) {
         this.getClient().sendPrivateMessage(
           message.who,
@@ -66,8 +71,8 @@ export class MessageHandler {
       return;
     }
 
-    if (message.type == "event") {
-      if (message.msg?.includes("href='clan_viplounge.php?preaction")) {
+    if (message.type == `event`) {
+      if (message.msg?.includes(`href='clan_viplounge.php?preaction`)) {
         await this.controller.fortune.checkFortuneTeller();
 
         return;
@@ -79,24 +84,24 @@ export class MessageHandler {
     } else if (
       message.msg == null ||
       message.who == null ||
-      message.type != "private"
+      message.type != `private`
     ) {
       return;
     }
 
     if (
-      message.who.id &&
-      this.getSettings().allowedRefreshers.includes(message.who.id) &&
-      message.msg.toLowerCase() == "refresh"
+      message.msg.toLowerCase() == `refresh` &&
+      /^\d+$/.test(message.who.id) &&
+      config.BOT_CONTROLLERS.split(`,`).includes(message.who.id)
     ) {
       this.getClient().sendPrivateMessage(
         message.who,
-        "Now refreshing all clans.."
+        `Now refreshing all clans..`
       );
       await this.admin.refreshAll();
       this.getClient().sendPrivateMessage(
         message.who,
-        "All clans have been refreshed"
+        `All clans have been refreshed`
       );
 
       return;

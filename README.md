@@ -1,5 +1,7 @@
 This is a faxbot written in typescript for Kingdom of Loathing
 
+## The following is outdated and was intended for an older bot design
+
 The `Settings.json` is the only thing you should need to configure in this script itself.
 `username`: The bot name
 `password`: The bot password
@@ -9,7 +11,6 @@ The `Settings.json` is the only thing you should need to configure in this scrip
 `runFaxRollover`: Read below
 `runFaxRolloverBurnTurns`: Read below
 `maintainLeadership`: A map of string keys and values which map to account names and passwords. The bot will log into those accounts daily to keep them active, preventing clan leadership problems.
-`discordWebhook`: A discord webhook url, if its empty or doesn't start with a valid url. It will be ignored. Used for informational purposes
 `allowedRefreshers`: A string array of user IDs, if a user in this list PM's the bot "refresh", the bot will visit every clan it knows to update the clan information. Being faxbot title, and fax information.
 
 ## Run Fax Rollover

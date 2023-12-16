@@ -2,10 +2,11 @@ import { encodeXML } from "entities";
 import { FaxbotDatabase } from "../../utils/Typings";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { createMonsterList } from "./MonsterManager";
+import { setMonsterListUpdated } from "./ClanManager";
 
 const constSpace = "\t";
 
-export function createXml(botName: string, botId: string) {
+function createXml(botName: string, botId: string) {
   const toSerialize: FaxbotDatabase = {
     botdata: {
       name: botName,
@@ -24,7 +25,7 @@ export function createXml(botName: string, botId: string) {
   return strings.join("\n");
 }
 
-export function createTxt() {
+function createTxt() {
   const monsters = createMonsterList();
 
   monsters.sort((s1, s2) => s1.name.localeCompare(s2.name));
@@ -80,4 +81,6 @@ export function updateGithub(botName: string, botId: string) {
     writeFileSync(txtDest, txt);
     modified = true;
   }
+
+  setMonsterListUpdated();
 }

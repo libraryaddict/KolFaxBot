@@ -1,25 +1,22 @@
-import { ParentController } from "../../ParentController";
+import { config } from "../../config";
+import type { ParentController } from "../../ParentController";
 import { addLog } from "../../Settings";
-import { EquipSlot, FaxClanData } from "../../utils/Typings";
+import type { EquipSlot, FaxClanData } from "../../utils/Typings";
 import { getKolDay } from "../../utils/Utils";
 import { FaxOutcome, RolloverFaxRequest } from "../faxrequests/FaxRequest";
 import {
   getRolloverFax,
-  updateClan,
-  setFaxMonster
+  setFaxMonster,
+  updateClan
 } from "../managers/ClanManager";
-import { getFaxRolloverDay, doingFaxRollover } from "../managers/DataManager";
 import { getMonsterById } from "../managers/MonsterManager";
 
 export class FaxRollover {
   controller: ParentController;
+  lastFaxRollover?: number;
 
   constructor(controller: ParentController) {
     this.controller = controller;
-  }
-
-  getSettings() {
-    return this.controller.settings;
   }
 
   getFaxRunner() {
@@ -31,11 +28,11 @@ export class FaxRollover {
   }
 
   async runFaxRollover() {
-    if (!this.getSettings().runFaxRollover) {
+    if (!config.RUN_FAX_ROLLOVER) {
       return;
     }
 
-    if (getFaxRolloverDay() == getKolDay()) {
+    if (this.lastFaxRollover == getKolDay()) {
       return;
     }
 
@@ -51,7 +48,7 @@ export class FaxRollover {
       return;
     }
 
-    doingFaxRollover();
+    this.lastFaxRollover = getKolDay();
 
     const status = await this.getClient().getStatus();
 
@@ -63,12 +60,12 @@ export class FaxRollover {
 
     const hasProtection =
       status != null &&
-      ((["acc1", "acc2", "acc3"] as EquipSlot[]).some(
+      (([`acc1`, `acc2`, `acc3`] as EquipSlot[]).some(
         (slot) => status.equipment.get(slot) == 5334
       ) ||
         status.effects.some((e) => e.duration > 0 && e.id == 1377));
 
-    if (!hasProtection && !this.getSettings().runFaxRolloverBurnTurns) {
+    if (!hasProtection && !config.RUN_DANGEROUS_FAX_ROLLOVER) {
       addLog(
         `Wanted to run a fax rollover, but we do not have the effect 'Abyssal Sweat' active or Mesmereyes™ contact lenses`
       );
