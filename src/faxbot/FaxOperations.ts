@@ -119,7 +119,7 @@ export class FaxOperations {
       fax: monsters[0],
       requested: Math.round(Date.now() / 1000),
       outcome: FaxMessages.ERROR_INTERNAL_ERROR,
-      request: message
+      request: monsters[0].name // We could store the message itself, but inevitably someone will post their password in a format that resolves to a monster
     };
 
     const faxAttempt = new PlayerFaxRequest(
