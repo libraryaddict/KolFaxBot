@@ -1,7 +1,7 @@
 import { config } from "../../config";
 import type { ParentController } from "../../ParentController";
 import { addLog } from "../../Settings";
-import type { DepositedFax } from "../../utils/Typings";
+import type { DepositedFax, KoLClan } from "../../utils/Typings";
 import type { FaxRequest } from "../faxrequests/FaxRequest";
 import { PlayerFaxRequest } from "../faxrequests/FaxRequest";
 import {
@@ -29,11 +29,9 @@ export class FaxAdministration {
     return this.controller.client;
   }
 
-  async refreshAll() {
-    const whitelists = await this.getClient().getWhitelists();
-
+  async refreshClans(clans: KoLClan[]) {
     try {
-      for (const clan of whitelists) {
+      for (const clan of clans) {
         await this.getFaxRunner().checkClanInfo(clan);
       }
     } finally {

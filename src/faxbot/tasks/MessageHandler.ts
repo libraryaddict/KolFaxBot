@@ -2,6 +2,8 @@ import { config } from "../../config";
 import type { ParentController } from "../../ParentController";
 import { FaxMessages } from "../../utils/FaxMessages";
 import type { KOLMessage } from "../../utils/Typings";
+import { FaxCommandRefresh } from "../commands/CommandRefresh";
+import type { FaxCommand } from "../commands/FaxCommand";
 import { isMonsterListOutdated } from "../managers/ClanManager";
 import { updateGithub } from "../managers/GithubManager";
 import type { FaxAdministration } from "./FaxAdministration";
@@ -10,10 +12,15 @@ export class MessageHandler {
   controller: ParentController;
   admin: FaxAdministration;
   lastKeepAlive: number = 0;
+  commands: FaxCommand[] = [];
 
   constructor(controller: ParentController) {
     this.controller = controller;
     this.admin = controller.admin;
+  }
+
+  registerCommands() {
+    this.commands.push(new FaxCommandRefresh(this.controller));
   }
 
   getFaxRunner() {
@@ -89,22 +96,21 @@ export class MessageHandler {
       return;
     }
 
-    if (
-      message.msg.toLowerCase() == `refresh` &&
-      /^\d+$/.test(message.who.id) &&
-      config.BOT_CONTROLLERS.split(`,`).includes(message.who.id)
-    ) {
-      this.getClient().sendPrivateMessage(
-        message.who,
-        `Now refreshing all clans..`
-      );
-      await this.admin.refreshAll();
-      this.getClient().sendPrivateMessage(
-        message.who,
-        `All clans have been refreshed`
-      );
+    if (/^[?!]/.test(message.msg) && /^\d+$/.test(message.who.id)) {
+      const name = message.msg.split(` `)[0].substring(1).toLowerCase();
 
-      return;
+      const command = this.commands.find((c) => c.name() == name);
+
+      if (
+        command != null &&
+        (!command.isRestricted() ||
+          config.BOT_CONTROLLERS.split(`,`).includes(message.who.id))
+      ) {
+        await command.execute(
+          message.who,
+          message.msg.substring(name.length + 1).trim()
+        );
+      }
     }
 
     await this.getFaxRunner().handleFaxRequestWrapper(message.who, message.msg);

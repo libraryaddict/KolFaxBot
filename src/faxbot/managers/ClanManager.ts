@@ -51,6 +51,20 @@ export function getClanType(clan: FaxClanData): ClanType {
   return `Random Clan`;
 }
 
+export function getClanMonsterType(clan: FaxClanData): number {
+  if (clan.clanTitle == null) {
+    return null;
+  }
+
+  const match = clan.clanTitle.match(/Source: M(\d+)$/i);
+
+  if (match == null) {
+    return null;
+  }
+
+  return parseInt(match[1]);
+}
+
 /**
  * Use the first clan that perfectly or vaguely matches, return early if perfect match
  */
@@ -257,6 +271,15 @@ export function isUnknownMonsterInClanData(): boolean {
   return clans.some(
     (c) => c.faxMonster != null && getMonster(c.faxMonster).length == 0
   );
+}
+
+export function getSpecificFaxSources(): [FaxClanData, number][] {
+  const mapped: [FaxClanData, number][] = clans.map((c) => [
+    c,
+    getClanMonsterType(c)
+  ]);
+
+  return mapped.filter(([c, type]) => type != null);
 }
 
 export async function loadClans() {
