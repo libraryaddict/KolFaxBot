@@ -7,7 +7,7 @@ import { FaxOutcome, RolloverFaxRequest } from "../faxrequests/FaxRequest";
 import {
   getRolloverFax,
   setFaxMonster,
-  updateClan
+  updateClan,
 } from "../managers/ClanManager";
 import { getMonsterById } from "../managers/MonsterManager";
 
@@ -108,7 +108,7 @@ export class FaxRollover {
   async attemptRolloverFax(clan: FaxClanData): Promise<boolean> {
     clan.clanLastChecked = Math.round(Date.now() / 1000);
 
-    updateClan(clan);
+    await updateClan(clan);
 
     const faxAttempt = new RolloverFaxRequest(clan);
     const status = await this.getFaxRunner().acquireFax(faxAttempt);
@@ -140,7 +140,7 @@ export class FaxRollover {
 
     const monster = getMonsterById(fightingMonster);
 
-    setFaxMonster(clan, monster.name, fightingMonster);
+    await setFaxMonster(clan, monster.name, fightingMonster);
 
     return true;
   }

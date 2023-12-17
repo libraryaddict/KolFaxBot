@@ -35,7 +35,7 @@ export class MessageHandler {
     if (this.lastKeepAlive + 30_000 < Date.now()) {
       this.lastKeepAlive = Date.now();
       // Nonsense command that forces kol to consider us as online due to it "timing out" every minute
-      this.getClient().useChatMacro(`/keepalive`);
+      await this.getClient().useChatMacro(`/keepalive`);
     }
 
     const messages = await this.getClient().fetchNewMessages();
@@ -69,7 +69,7 @@ export class MessageHandler {
         message.who.id != this.getClient().getUserID() &&
         message.type == `private`
       ) {
-        this.getClient().sendPrivateMessage(
+        await this.getClient().sendPrivateMessage(
           message.who,
           FaxMessages.ERROR_TOO_CLOSE_ROLLOVER
         );

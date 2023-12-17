@@ -27,6 +27,9 @@
     "no-case-declarations": ["off"],
     "@typescript-eslint/no-unused-vars": ["off"],
     "unused-imports/no-unused-imports": ["error"],
+    "@typescript-eslint/no-floating-promises": ["error"],
+    "@typescript-eslint/no-misused-promises": ["error"],
+    "prefer-arrow/prefer-arrow-functions": ["off"],
     "lines-between-class-members": [
       "warn",
       "always",

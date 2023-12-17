@@ -1,18 +1,18 @@
-import { encodeXML } from "entities";
-import { FaxbotDatabase } from "../../utils/Typings";
-import { existsSync, readFileSync, writeFileSync } from "fs";
-import { createMonsterList } from "./MonsterManager";
+import type { FaxbotDatabase } from "../../utils/Typings";
 import { setMonsterListUpdated } from "./ClanManager";
+import { createMonsterList } from "./MonsterManager";
+import { encodeXML } from "entities";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 
-const constSpace = "\t";
+const constSpace = `\t`;
 
 function createXml(botName: string, botId: string) {
   const toSerialize: FaxbotDatabase = {
     botdata: {
       name: botName,
-      playerid: botId
+      playerid: botId,
     },
-    monsterlist: { monsterdata: createMonsterList() }
+    monsterlist: { monsterdata: createMonsterList() },
   };
 
   toSerialize.monsterlist.monsterdata.sort((s1, s2) =>
@@ -20,9 +20,9 @@ function createXml(botName: string, botId: string) {
   );
 
   const strings: string[] = [`<?xml version="1.0" encoding="UTF-8"?>`];
-  strings.push(...createField("faxbot", toSerialize, ""));
+  strings.push(...createField(`faxbot`, toSerialize, ``));
 
-  return strings.join("\n");
+  return strings.join(`\n`);
 }
 
 function createTxt() {
@@ -30,10 +30,10 @@ function createTxt() {
 
   monsters.sort((s1, s2) => s1.name.localeCompare(s2.name));
 
-  return monsters.map((m) => m.command).join("\n");
+  return monsters.map((m) => m.command).join(`\n`);
 }
 
-function createField(name: string, value: any, spacing: string): string[] {
+function createField(name: string, value: unknown, spacing: string): string[] {
   const strings: string[] = [];
 
   if (Array.isArray(value)) {
@@ -48,7 +48,7 @@ function createField(name: string, value: any, spacing: string): string[] {
 
       strings.push(`${spacing}</${name}>`);
     }
-  } else if (typeof value == "object") {
+  } else if (typeof value == `object`) {
     strings.push(`${spacing}<${name}>`);
 
     for (const key of Object.keys(value)) {
@@ -72,12 +72,12 @@ export function updateGithub(botName: string, botId: string) {
   const txt = createTxt();
   let modified = false;
 
-  if (!existsSync(xmlDest) || readFileSync(xmlDest, "utf-8") != xml) {
+  if (!existsSync(xmlDest) || readFileSync(xmlDest, `utf-8`) != xml) {
     writeFileSync(xmlDest, xml);
     modified = true;
   }
 
-  if (!existsSync(txtDest) || readFileSync(txtDest, "utf-8") != txt) {
+  if (!existsSync(txtDest) || readFileSync(txtDest, `utf-8`) != txt) {
     writeFileSync(txtDest, txt);
     modified = true;
   }

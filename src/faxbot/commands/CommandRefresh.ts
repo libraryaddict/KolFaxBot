@@ -26,7 +26,7 @@ export class FaxCommandRefresh implements FaxCommand {
 
     if (paramters.length > 0) {
       if (paramters.toLowerCase() != `all`) {
-        this.controller.client.sendPrivateMessage(
+        await this.controller.client.sendPrivateMessage(
           sender,
           `Unrecognized argument`
         );
@@ -35,7 +35,7 @@ export class FaxCommandRefresh implements FaxCommand {
       }
 
       toCheck = await this.controller.client.getWhitelists();
-      this.controller.client.sendPrivateMessage(
+      await this.controller.client.sendPrivateMessage(
         sender,
         `Now refreshing all whitelisted clans..`
       );
@@ -45,7 +45,7 @@ export class FaxCommandRefresh implements FaxCommand {
       );
 
       if (clan == null) {
-        this.controller.client.sendPrivateMessage(
+        await this.controller.client.sendPrivateMessage(
           sender,
           `Unable to load your clan`
         );
@@ -54,7 +54,7 @@ export class FaxCommandRefresh implements FaxCommand {
       }
 
       toCheck.push(clan);
-      this.controller.client.sendPrivateMessage(
+      await this.controller.client.sendPrivateMessage(
         sender,
         `Now refreshing the clan '${clan.name}'`
       );
@@ -62,7 +62,7 @@ export class FaxCommandRefresh implements FaxCommand {
 
     await this.controller.admin.refreshClans(toCheck);
 
-    this.controller.client.sendPrivateMessage(
+    await this.controller.client.sendPrivateMessage(
       sender,
       `${toCheck.length} clans have been refreshed.`
     );

@@ -17,7 +17,7 @@ async function updateMonsterData() {
       {
         method: `GET`,
         maxRedirects: 0,
-        validateStatus: (status) => status === 200
+        validateStatus: (status) => status === 200,
       }
     )
   ).data;
@@ -47,7 +47,7 @@ async function loadMonstersByString(monstersFile: string) {
       id: parseInt(match[2]),
       name: match[1],
       manualName: manual == null ? null : manual[1] ?? manual[2],
-      category: line.includes(`NOWISH`) ? `Unwishable` : null
+      category: line.includes(`NOWISH`) ? `Unwishable` : null,
     };
 
     monsters.push(data);
@@ -220,7 +220,7 @@ export function createMonsterList(): FaxbotDatabaseMonster[] {
       name: monsterData.name,
       actual_name: monsterData.name,
       command: `[${monsterData.id}]${monsterData.name}`,
-      category: monsterData.category ?? `None`
+      category: monsterData.category ?? `None`,
     };
 
     monsterList.push(monster);

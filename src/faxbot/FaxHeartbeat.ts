@@ -23,12 +23,12 @@ export class FaxHeartbeat {
     return this.controller.client;
   }
 
-  doFaxbotHeartbeat() {
+  async doFaxbotHeartbeat() {
     if (this.messagesMutex.isLocked()) {
       return;
     }
 
-    this.messagesMutex.runExclusive(async () => {
+    await this.messagesMutex.runExclusive(async () => {
       if (this.getClient().isRolloverFaxTime()) {
         await this.rollover.runFaxRollover();
       }

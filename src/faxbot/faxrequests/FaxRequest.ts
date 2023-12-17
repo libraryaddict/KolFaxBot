@@ -6,22 +6,21 @@ import type {
   FaxClanData,
   KoLClan,
   KoLUser,
-  MonsterData
+  MonsterData,
 } from "../../utils/Typings";
 import { getClanByMonster } from "../managers/ClanManager";
 
 export enum FaxOutcome {
   FAILED,
   TRY_AGAIN,
-  SUCCESS
+  SUCCESS,
 }
 
 export interface FaxRequest {
   hasFax: boolean;
+  targetClan: KoLClan;
 
-  getClan(): Promise<KoLClan>;
-
-  notifyUpdate(message: FaxMessages): void;
+  notifyUpdate(message: FaxMessages): Promise<void>;
 
   getFaxSource(): FaxClanData;
 
@@ -33,22 +32,16 @@ export interface FaxRequest {
 export class RolloverFaxRequest implements FaxRequest {
   hasFax: boolean;
   clan: FaxClanData;
-  clanPromise: Promise<KoLClan>;
+  targetClan: KoLClan;
   monsterName: string;
 
   constructor(clan: FaxClanData) {
     this.clan = clan;
     this.monsterName = clan.faxMonster;
-    this.clanPromise = new Promise((res) =>
-      res({ id: clan.clanId, name: clan.clanName })
-    );
+    this.targetClan = { id: clan.clanId, name: clan.clanName };
   }
 
-  getClan(): Promise<KoLClan> {
-    return this.clanPromise;
-  }
-
-  notifyUpdate(message: FaxMessages): void {}
+  async notifyUpdate(message: FaxMessages) {}
 
   getFaxSource(): FaxClanData {
     return this.clan;
@@ -67,7 +60,7 @@ export class PlayerFaxRequest implements FaxRequest {
   client: KoLClient;
   player: KoLUser;
   monster: MonsterData;
-  targetClanPromise: Promise<KoLClan>;
+  targetClan: KoLClan;
   faxAttempt: DepositedFax;
   hasFax: boolean;
 
@@ -75,37 +68,26 @@ export class PlayerFaxRequest implements FaxRequest {
     client: KoLClient,
     player: KoLUser,
     monster: MonsterData,
-    clan: Promise<KoLClan>,
+    clan: KoLClan,
     fax: DepositedFax
   ) {
     this.client = client;
     this.player = player;
     this.monster = monster;
-    this.targetClanPromise = clan;
+    this.targetClan = clan;
     this.faxAttempt = fax;
-
-    clan.then((c) => {
-      if (c == null) {
-        return;
-      }
-
-      this.faxAttempt.clanId = c.id;
-      this.faxAttempt.clanName = c.name;
-    });
+    this.faxAttempt.clanId = clan.id;
+    this.faxAttempt.clanName = clan.name;
   }
 
-  notifyUpdate(message: FaxMessages) {
+  async notifyUpdate(message: FaxMessages) {
     let msg = message.replaceAll(`{monster}`, this.monster.name);
     msg = msg.replaceAll(`{operator}`, config.FAXBOT_OPERATOR);
     msg = msg.replaceAll(`{clan}`, this.faxAttempt?.clanName ?? `Unknown Clan`);
 
-    this.client.sendPrivateMessage(this.player, msg);
+    await this.client.sendPrivateMessage(this.player, msg);
 
     this.faxAttempt.outcome = message;
-  }
-
-  getClan(): Promise<KoLClan> {
-    return this.targetClanPromise;
   }
 
   getFaxSource(): FaxClanData {

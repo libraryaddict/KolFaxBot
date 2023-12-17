@@ -4,7 +4,7 @@ import type {
   FaxClanData,
   KoLClan,
   MonsterData,
-  UserClan
+  UserClan,
 } from "../../utils/Typings";
 import { loadClansFromDatabase, removeClan, saveClan } from "./DatabaseManager";
 import { getMonster } from "./MonsterManager";
@@ -35,7 +35,7 @@ export function getClanById(id: number): UserClan {
   return {
     name: def.clanName,
     id: def.clanId,
-    title: def.clanTitle
+    title: def.clanTitle,
   };
 }
 
@@ -142,7 +142,7 @@ export function getOutdatedClans() {
   return clans.filter((c) => c.clanLastChecked < lastCheckedCutoff);
 }
 
-export function updateClan(clan: FaxClanData) {
+export async function updateClan(clan: FaxClanData) {
   const existing = clans.find((c) => c.clanId == clan.clanId);
 
   if (existing != null) {
@@ -162,7 +162,7 @@ export function updateClan(clan: FaxClanData) {
     return;
   }
 
-  saveClan(clan);
+  await saveClan(clan);
 }
 
 export async function removeInaccessibleClans(clansWeCanAccess: KoLClan[]) {
@@ -193,7 +193,7 @@ export function getUnknownClans(whitelistedClans: KoLClan[]): KoLClan[] {
   });
 }
 
-export function setFaxMonster(
+export async function setFaxMonster(
   clan: FaxClanData,
   monsterName: string,
   monsterId: number
@@ -211,7 +211,7 @@ export function setFaxMonster(
 
   clan.faxMonster = monsterName;
   updateMonsterList = true;
-  updateClan(clan);
+  await updateClan(clan);
 }
 
 export function getRolloverFax(): FaxClanData {
@@ -276,7 +276,7 @@ export function isUnknownMonsterInClanData(): boolean {
 export function getSpecificFaxSources(): [FaxClanData, number][] {
   const mapped: [FaxClanData, number][] = clans.map((c) => [
     c,
-    getClanMonsterType(c)
+    getClanMonsterType(c),
   ]);
 
   return mapped.filter(([c, type]) => type != null);

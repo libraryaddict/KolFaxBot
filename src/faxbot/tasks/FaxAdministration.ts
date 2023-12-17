@@ -9,7 +9,7 @@ import {
   getOutdatedClans,
   getUnknownClans,
   removeInaccessibleClans,
-  updateClan
+  updateClan,
 } from "../managers/ClanManager";
 
 export class FaxAdministration {
@@ -42,7 +42,7 @@ export class FaxAdministration {
   async processWhitelists() {
     const whitelists = await this.getClient().getWhitelists();
 
-    removeInaccessibleClans(whitelists);
+    await removeInaccessibleClans(whitelists);
     const unknown = getUnknownClans(whitelists);
 
     if (unknown.length == 0) {
@@ -96,12 +96,12 @@ export class FaxAdministration {
       try {
         await this.controller.faxer.checkClanInfo({
           id: clan.clanId,
-          name: clan.clanName
+          name: clan.clanName,
         });
       } catch (e) {
         // As we errored, just set it to have been checked and we'll skip it
         clan.clanLastChecked = Math.round(Date.now() / 1000);
-        updateClan(clan);
+        await updateClan(clan);
 
         addLog(`Errored while checking ${clan.clanName}: ${e}`);
       }
@@ -141,16 +141,14 @@ export class FaxAdministration {
       return;
     }
 
-    const clan = await newFax.getClan();
-
-    if (clan == null) {
+    if (newFax.targetClan == null) {
       return;
     }
 
     const now = Math.round(Date.now() / 1000);
 
     for (const fax of this.faxes) {
-      if (fax.clanId != clan.id) {
+      if (fax.clanId != newFax.targetClan.id) {
         continue;
       }
 

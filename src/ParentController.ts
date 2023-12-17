@@ -4,11 +4,11 @@ import { FaxOperations } from "./faxbot/FaxOperations";
 import {
   getClanById,
   isUnknownMonsterInClanData,
-  loadClans
+  loadClans,
 } from "./faxbot/managers/ClanManager";
 import {
   loadMonsters,
-  tryUpdateMonsters
+  tryUpdateMonsters,
 } from "./faxbot/managers/MonsterManager";
 import { FaxAdministration } from "./faxbot/tasks/FaxAdministration";
 import { FortuneTeller } from "./faxbot/tasks/FortuneTeller";
@@ -18,9 +18,8 @@ import {
   getKolDay,
   getSecondsElapsedInDay,
   getSecondsToNearestRollover,
-  getSecondsToRollover
+  getSecondsToRollover,
 } from "./utils/Utils";
-import { Mutex } from "async-mutex";
 
 export class ParentController {
   fortune: FortuneTeller;
@@ -44,25 +43,25 @@ export class ParentController {
     this.fortune = new FortuneTeller(this.client);
 
     await this.onNewDay();
-    this.startBotHeartbeat();
+    await this.startBotHeartbeat();
   }
 
   async startBotHeartbeat() {
     let increments = 0;
     await this.onHeartbeat(increments++);
 
-    // This is what controls the schedulers, so no other intervals or timeouts
-    const ensureExclusive = new Mutex();
-
-    setInterval(() => {
-      if (ensureExclusive.isLocked()) {
-        return;
-      }
-
+    while (true) {
       increments = ++increments % 100;
 
-      ensureExclusive.runExclusive(() => this.onHeartbeat(increments));
-    }, 3000);
+      // Start a timeout so that we won't wait a full 3 seconds before doing the next loop
+      const timeout = new Promise((res) => setTimeout(res, 3000));
+
+      // Run the heartbeat
+      await this.onHeartbeat(increments);
+
+      // Wait for the timeout
+      await timeout;
+    }
   }
 
   async onHeartbeat(increments: number) {
@@ -97,7 +96,7 @@ export class ParentController {
     }
 
     // Finally, let the rest of the bot operate
-    this.faxHeartbeat.doFaxbotHeartbeat();
+    await this.faxHeartbeat.doFaxbotHeartbeat();
   }
 
   async onNewDay() {

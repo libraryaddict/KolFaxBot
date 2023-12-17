@@ -12,12 +12,12 @@ import type {
   KoLUser,
   PhotoInfo,
   UserClan,
-  UserInfo
+  UserInfo,
 } from "./Typings";
 import {
   getSecondsToNearestRollover,
   getSecondsToRollover,
-  splitMessage
+  splitMessage,
 } from "./Utils";
 import { Mutex } from "async-mutex";
 import type { Axios, AxiosResponse } from "axios";
@@ -56,7 +56,7 @@ export class KoLClient {
       baseURL: `https://www.kingdomofloathing.com/`,
       timeout: 30000,
       httpAgent: new httpAgent({ keepAlive: true }),
-      httpsAgent: new httpsAgent({ keepAlive: true })
+      httpsAgent: new httpsAgent({ keepAlive: true }),
     });
   }
 
@@ -128,7 +128,7 @@ export class KoLClient {
         `newchatmessages.php`,
         {
           j: 1,
-          lasttime: this._lastFetchedMessages
+          lasttime: this._lastFetchedMessages,
         }
       );
 
@@ -161,12 +161,12 @@ export class KoLClient {
         maxRedirects: 0,
         withCredentials: true,
         headers: {
-          cookie: this._credentials?.sessionCookies || ``
+          cookie: this._credentials?.sessionCookies || ``,
         },
         params: {
           what: `status`,
-          for: `FaxBot`
-        }
+          for: `FaxBot`,
+        },
       });
 
       this._isLoggedOut = !(
@@ -188,7 +188,7 @@ export class KoLClient {
   async getInventory(): Promise<Map<number, number>> {
     const apiResponse = await this.visitUrl(`api.php`, {
       what: `inventory`,
-      for: `me`
+      for: `me`,
     });
 
     const map: Map<number, number> = new Map();
@@ -217,7 +217,7 @@ export class KoLClient {
     const page = await this.visitUrl(`submitnewchat.php`, {
       playerid: this.getUserID(),
       j: 1,
-      graf: `/whois ${name}`
+      graf: `/whois ${name}`,
     });
 
     const match = page[`output`].match(/">([^(<>)[]+) \(#(\d+)\)</);
@@ -232,7 +232,7 @@ export class KoLClient {
 
     return {
       name: match[1],
-      id: match[2]
+      id: match[2],
     };
   }
 
@@ -248,7 +248,7 @@ export class KoLClient {
       towho: target.toString(),
       message: message,
       savecopy: `on`,
-      sendmeat: meat > 0 ? meat.toString() : ``
+      sendmeat: meat > 0 ? meat.toString() : ``,
     };
 
     for (const [item, count] of items) {
@@ -263,7 +263,7 @@ export class KoLClient {
   async getStatus(): Promise<KoLStatus> {
     const apiResponse = await this.visitUrl(`api.php`, {
       what: `status`,
-      for: `FaxBot`
+      for: `FaxBot`,
     });
 
     if (!apiResponse || !apiResponse[`equipment`]) {
@@ -274,7 +274,7 @@ export class KoLClient {
 
     this._player = {
       id: apiResponse[`playerid`],
-      name: apiResponse[`name`]
+      name: apiResponse[`name`],
     };
 
     const equipment = new Map();
@@ -299,7 +299,7 @@ export class KoLClient {
         const effect: KoLEffect = {
           name: apiEffect[0],
           duration: parseInt(apiEffect[1]),
-          id: parseInt(apiEffect[4])
+          id: parseInt(apiEffect[4]),
         };
 
         if (effect.duration <= 0) {
@@ -331,7 +331,7 @@ export class KoLClient {
       rollover: parseInt(apiResponse[`rollover`]),
       turnsPlayed: parseInt(apiResponse[`turnsplayed`]) || 0,
       effects: effects,
-      daynumber: parseInt(apiResponse[`daynumber`]) || 0
+      daynumber: parseInt(apiResponse[`daynumber`]) || 0,
     };
 
     this.lastStatus = status;
@@ -360,7 +360,7 @@ export class KoLClient {
           {
             data: this._loginParameters,
             maxRedirects: 0,
-            validateStatus: (status) => status === 302
+            validateStatus: (status) => status === 302,
           }
         );
 
@@ -407,7 +407,7 @@ export class KoLClient {
       ...(this._credentials?.pwdhash
         ? { pwd: this._credentials?.pwdhash }
         : {}),
-      ...parameters
+      ...parameters,
     });
 
     try {
@@ -417,19 +417,19 @@ export class KoLClient {
         page = await this.axios.post(`${url}`, params, {
           withCredentials: true,
           headers: {
-            cookie: this._credentials?.sessionCookies || ``
+            cookie: this._credentials?.sessionCookies || ``,
           },
           data: params,
-          validateStatus: (status) => status === 200
+          validateStatus: (status) => status === 200,
         });
       } else {
         page = await this.axios.get(`${url}`, {
           withCredentials: true,
           headers: {
-            cookie: this._credentials?.sessionCookies || ``
+            cookie: this._credentials?.sessionCookies || ``,
           },
           data: params,
-          validateStatus: (status) => status === 200
+          validateStatus: (status) => status === 200,
         });
       }
 
@@ -484,7 +484,7 @@ export class KoLClient {
    */
   async getUserInfo(playerId: number): Promise<UserInfo | undefined> {
     const myClanResponse = await this.visitUrl(`showplayer.php`, {
-      who: playerId
+      who: playerId,
     });
 
     const clanMatch = myClanResponse.match(
@@ -499,14 +499,14 @@ export class KoLClient {
 
     const user: UserInfo = {
       name: userMatch[1],
-      id: parseInt(userMatch[2])
+      id: parseInt(userMatch[2]),
     };
 
     if (clanMatch != null) {
       user.clan = {
         id: parseInt(clanMatch[1]),
         name: clanMatch[2],
-        title: clanMatch[3]
+        title: clanMatch[3],
       };
     }
 
@@ -528,7 +528,7 @@ export class KoLClient {
 
     const result = await this.visitUrl(`clan_viplounge.php`, {
       preaction: action,
-      whichfloor: `2`
+      whichfloor: `2`,
     });
 
     if (
@@ -583,7 +583,7 @@ export class KoLClient {
     }
 
     return {
-      name: match[2]
+      name: match[2],
     };
   }
 
@@ -603,7 +603,7 @@ export class KoLClient {
   async useChatMacro(macro: string): Promise<string> {
     return await this.visitUrl(`submitnewchat.php`, {
       graf: `/clan ${macro}`,
-      j: 1
+      j: 1,
     });
   }
 
@@ -676,7 +676,7 @@ export class KoLClient {
     const response = await this.visitUrl(`clan_admin.php`, {
       action: `changeleader`,
       newleader: newLeader.id,
-      confirm: `on`
+      confirm: `on`,
     });
 
     return /Leadership of clan transferred. A leader is no longer you./.test(
@@ -700,7 +700,7 @@ export class KoLClient {
     )) {
       clans.push({
         id: parseInt(clanId),
-        name: clanName
+        name: clanName,
       });
     }
 
@@ -747,7 +747,7 @@ export class KoLClient {
   async disbandClan(): Promise<boolean> {
     const res = await this.visitUrl(`clan_admin.php`, {
       action: `disband`,
-      confirm: `on`
+      confirm: `on`,
     });
 
     return res.includes(`bgcolor=blue><b>Apply to a Clan</b>`);
@@ -759,7 +759,7 @@ export class KoLClient {
       action: `joinclan`,
       confirm: `1`,
       ajax: 0,
-      _: Date.now()
+      _: Date.now(),
     });
 
     let joinResult = page;
@@ -824,7 +824,7 @@ export class KoLClient {
   async startFaxFight(): Promise<number | undefined> {
     let page = await this.visitUrl(`inv_use.php`, {
       whichitem: 4873,
-      ajax: 1
+      ajax: 1,
     });
 
     // Redirect follow? Should ask us to fetch fight.php
@@ -869,7 +869,7 @@ export class KoLClient {
   async runCombatMacro(macro: string) {
     return this.visitUrl(`fight.php`, {
       action: `macro`,
-      macrotext: encodeURIComponent(macro)
+      macrotext: encodeURIComponent(macro),
     });
   }
 
