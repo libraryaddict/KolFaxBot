@@ -175,7 +175,7 @@ export class CommandAddMonster implements FaxCommand {
     if (monsters.length != 1) {
       await this.controller.client.sendPrivateMessage(
         sender,
-        `Error while looking at monster name. Expected a single monster to match, ${monsters.length} matched the name instead,`
+        `Error while looking at monster name. Expected a single monster to match, ${monsters.length} matched the name instead`
       );
 
       return;
@@ -241,7 +241,7 @@ export class CommandAddMonster implements FaxCommand {
       await setFaxMonster(faxClan, monster.name, monster.id);
       await this.controller.client.sendPrivateMessage(
         sender,
-        `Updated ${clan.name} to contain the monster ${monster.name}. Thank you!`
+        `Updated a source clan to contain the monster ${monster.name}. Thank you!`
       );
 
       // If we're not done yet
