@@ -26,19 +26,54 @@ export class CommandAddMonster implements FaxCommand {
   async execute(sender: KoLUser, paramters: string): Promise<any> {
     if (paramters == `which`) {
       await this.which(sender);
-    } else if (paramters == `run`) {
+
+      return;
+    }
+
+    if (paramters == `run`) {
       try {
         await this.run(sender);
       } finally {
         await this.controller.faxer.dumpFax(null, true);
         await this.controller.faxer.joinDefaultClan();
       }
-    } else {
-      await this.controller.client.sendPrivateMessage(
-        sender,
-        `Unknown argument, send 'which' to find what I'm looking for or 'run' to ask me to look in your fax machine to try process it`
-      );
+
+      return;
     }
+
+    if (paramters.length > 0) {
+      const monsters = getMonster(paramters);
+
+      if (monsters.length > 0) {
+        const clans = getSpecificFaxSources().filter(([c, id]) =>
+          monsters.some((m) => m.id == id)
+        );
+
+        if (clans.length == 0) {
+          await this.controller.client.sendPrivateMessage(
+            sender,
+            `I do not need that monster thanks!`
+          );
+        } else {
+          await this.controller.client.sendPrivateMessage(
+            sender,
+            `It appears that monster would fit nicely into my fax network, use 'run' to tell me to grab that monster from your fax machine.`
+          );
+        }
+      } else {
+        await this.controller.client.sendPrivateMessage(
+          sender,
+          `I do not recognize that argument. Did you mean 'which' or 'run'?`
+        );
+      }
+
+      return;
+    }
+
+    await this.controller.client.sendPrivateMessage(
+      sender,
+      `Unknown argument, send 'which' to find what I'm looking for or 'run' to ask me to look in your fax machine to try process it`
+    );
   }
 
   async which(sender: KoLUser) {

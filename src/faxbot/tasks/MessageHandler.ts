@@ -100,8 +100,8 @@ export class MessageHandler {
       return;
     }
 
-    if (/^[?!]/.test(message.msg) && /^\d+$/.test(message.who.id)) {
-      const name = message.msg.split(` `)[0].substring(1).toLowerCase();
+    if (/^\d+$/.test(message.who.id)) {
+      const name = message.msg.split(` `)[0].toLowerCase();
 
       const command = this.commands.find((c) => c.name() == name);
 
@@ -112,7 +112,7 @@ export class MessageHandler {
       ) {
         await command.execute(
           message.who,
-          message.msg.substring(name.length + 1).trim()
+          message.msg.substring(name.length).trim()
         );
       }
     }
