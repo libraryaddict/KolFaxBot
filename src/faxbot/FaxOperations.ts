@@ -446,20 +446,6 @@ export class FaxOperations {
       return;
     }
 
-    const fax = await this.getClient().useFaxMachine(`receivefax`);
-
-    // We bugged out somewhere, lets just go
-    if (fax == `Already have fax` || fax == `Unknown`) {
-      addLog(
-        `Unexpectably bugged out somewhere when checking clan fax: ${fax}`
-      );
-      await this.dumpFax(null);
-
-      return;
-    }
-
-    const oldData = getClanDataById(newClan.id);
-
     const data: FaxClanData = {
       clanId: newClan.id,
       clanName: newClan.name,
@@ -468,27 +454,46 @@ export class FaxOperations {
       clanFirstAdded: Math.round(Date.now() / 1000),
     };
 
-    if (fax == `Grabbed Fax`) {
-      const photo = await this.getClient().getPhotoInfo();
+    if (
+      getClanById(config.DEFAULT_CLAN) != null &&
+      getClanById(config.FAX_DUMP_CLAN) != null
+    ) {
+      const fax = await this.getClient().useFaxMachine(`receivefax`);
 
-      if (photo == null || photo.name == null) {
-        // We bugged out somewhere, lets just log it and move on
-        addLog(`Failed to find fax information in clan ${newClan.name}`);
+      // We bugged out somewhere, lets just go
+      if (fax == `Already have fax` || fax == `Unknown`) {
+        addLog(
+          `Unexpectably bugged out somewhere when checking clan fax: ${fax}`
+        );
         await this.dumpFax(null);
 
         return;
       }
 
-      await this.dumpFax(null);
+      const oldData = getClanDataById(newClan.id);
 
-      if (getMonster(photo.name) == null) {
-        await tryUpdateMonsters();
+      if (fax == `Grabbed Fax`) {
+        const photo = await this.getClient().getPhotoInfo();
+
+        if (photo == null || photo.name == null) {
+          // We bugged out somewhere, lets just log it and move on
+          addLog(`Failed to find fax information in clan ${newClan.name}`);
+          await this.dumpFax(null);
+
+          return;
+        }
+
+        await this.dumpFax(null);
+
+        if (getMonster(photo.name) == null) {
+          await tryUpdateMonsters();
+        }
+
+        await setFaxMonster(data, photo.name, null);
+      } else if (oldData != null && oldData.faxMonster != null) {
+        // Something went wrong, lets not get into it
+        return;
       }
-
-      await setFaxMonster(data, photo.name, null);
-    } else if (oldData != null && oldData.faxMonster != null) {
-      // Something went wrong, lets not get into it
-      return;
     }
 
     // The rest of the error states should be non-issues. They probably don't have a fax machine.
