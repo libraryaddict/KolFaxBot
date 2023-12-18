@@ -19,6 +19,8 @@ export class MessageHandler {
   constructor(controller: ParentController) {
     this.controller = controller;
     this.admin = controller.admin;
+
+    this.registerCommands();
   }
 
   registerCommands() {
@@ -114,6 +116,8 @@ export class MessageHandler {
           message.who,
           message.msg.substring(name.length).trim()
         );
+
+        return;
       }
     }
 
