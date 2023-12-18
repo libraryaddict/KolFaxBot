@@ -63,7 +63,7 @@ export class CommandAddMonster implements FaxCommand {
       } else {
         await this.controller.client.sendPrivateMessage(
           sender,
-          `I do not recognize that argument. Did you mean 'which' or 'run'?`
+          `I do not recognize that argument. Did you mean 'which' or 'run'? You can also just send me the monster name/ID to check if I need that one.`
         );
       }
 
@@ -191,7 +191,7 @@ export class CommandAddMonster implements FaxCommand {
     if (clans.length == 0) {
       await this.controller.client.sendPrivateMessage(
         sender,
-        `Error, I have no clans that are looking for the monster: ${monster.name} (${monster.id})`
+        `Error, I have no clans that are looking for the monster: [${monster.id}] ${monster.name}`
       );
 
       return;
