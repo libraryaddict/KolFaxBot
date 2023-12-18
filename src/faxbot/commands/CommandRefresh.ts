@@ -2,7 +2,7 @@ import type { ParentController } from "../../ParentController";
 import type { KoLClan, KoLUser } from "../../utils/Typings";
 import type { FaxCommand } from "./FaxCommand";
 
-export class FaxCommandRefresh implements FaxCommand {
+export class CommandRefresh implements FaxCommand {
   controller: ParentController;
 
   constructor(controller: ParentController) {

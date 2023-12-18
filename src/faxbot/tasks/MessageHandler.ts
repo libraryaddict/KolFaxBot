@@ -2,7 +2,8 @@ import { config } from "../../config";
 import type { ParentController } from "../../ParentController";
 import { FaxMessages } from "../../utils/FaxMessages";
 import type { KOLMessage } from "../../utils/Typings";
-import { FaxCommandRefresh } from "../commands/CommandRefresh";
+import { CommandAddMonster } from "../commands/CommandAddMonster";
+import { CommandRefresh } from "../commands/CommandRefresh";
 import type { FaxCommand } from "../commands/FaxCommand";
 import { isMonsterListOutdated } from "../managers/ClanManager";
 import { updateGithub } from "../managers/GithubManager";
@@ -20,7 +21,8 @@ export class MessageHandler {
   }
 
   registerCommands() {
-    this.commands.push(new FaxCommandRefresh(this.controller));
+    this.commands.push(new CommandRefresh(this.controller));
+    this.commands.push(new CommandAddMonster(this.controller));
   }
 
   getFaxRunner() {

@@ -513,8 +513,11 @@ export class KoLClient {
     return user;
   }
 
-  async useFaxMachine(action: "sendfax" | "receivefax"): Promise<FaxMachine> {
-    if (action != `receivefax`) {
+  async useFaxMachine(
+    action: "sendfax" | "receivefax",
+    bypassSource: boolean = false
+  ): Promise<FaxMachine> {
+    if (action != `receivefax` && !bypassSource) {
       if (this.currentClan == null) {
         return `No Clan Info`;
       }

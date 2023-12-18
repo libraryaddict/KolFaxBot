@@ -7,7 +7,7 @@ import type {
   UserClan,
 } from "../../utils/Typings";
 import { loadClansFromDatabase, removeClan, saveClan } from "./DatabaseManager";
-import { getMonster } from "./MonsterManager";
+import { getMonster, getMonsterById } from "./MonsterManager";
 
 // The clans we have access to. If we lose access to a clan, we will remove them from this list
 const clans: FaxClanData[] = [];
@@ -279,7 +279,9 @@ export function getSpecificFaxSources(): [FaxClanData, number][] {
     getClanMonsterType(c),
   ]);
 
-  return mapped.filter(([c, type]) => type != null);
+  return mapped.filter(
+    ([c, type]) => type != null && getMonsterById(type) != null
+  );
 }
 
 export async function loadClans() {
