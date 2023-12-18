@@ -12,7 +12,7 @@ export class CommandAddMonster implements FaxCommand {
   }
 
   isRestricted(): boolean {
-    return true;
+    return false;
   }
 
   name(): string {

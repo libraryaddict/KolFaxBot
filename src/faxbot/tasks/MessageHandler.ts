@@ -3,6 +3,7 @@ import type { ParentController } from "../../ParentController";
 import { FaxMessages } from "../../utils/FaxMessages";
 import type { KOLMessage } from "../../utils/Typings";
 import { CommandAddMonster } from "../commands/CommandAddMonster";
+import { CommandHelp } from "../commands/CommandHelp";
 import { CommandRefresh } from "../commands/CommandRefresh";
 import type { FaxCommand } from "../commands/FaxCommand";
 import { isMonsterListOutdated } from "../managers/ClanManager";
@@ -21,6 +22,7 @@ export class MessageHandler {
   }
 
   registerCommands() {
+    this.commands.push(new CommandHelp(this.controller));
     this.commands.push(new CommandRefresh(this.controller));
     this.commands.push(new CommandAddMonster(this.controller));
   }
