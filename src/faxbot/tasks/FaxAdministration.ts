@@ -62,7 +62,7 @@ export class FaxAdministration {
         throw `Expected a whitelist to the clan for ${preprocess} as defined in our settings`;
       }
 
-      await this.getFaxRunner().checkClanInfo(clan);
+      await this.getFaxRunner().checkClanInfo(data);
     }
 
     try {
