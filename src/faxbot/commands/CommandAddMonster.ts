@@ -46,7 +46,12 @@ export class CommandAddMonster implements FaxCommand {
 
       if (monsters.length > 0) {
         const clans = getSpecificFaxSources().filter(([c, id]) =>
-          monsters.some((m) => m.id == id)
+          monsters.some(
+            (m) =>
+              m.id == id &&
+              (getMonsterById(id).manualName ?? getMonsterById(id).name) !=
+                c.faxMonster
+          )
         );
 
         if (clans.length == 0) {
@@ -79,7 +84,9 @@ export class CommandAddMonster implements FaxCommand {
   async which(sender: KoLUser) {
     const clans = getSpecificFaxSources().filter(
       ([c, id]) =>
-        c.faxMonster == null || c.faxMonster != getMonsterById(id).name
+        c.faxMonster == null ||
+        c.faxMonster !=
+          (getMonsterById(id).manualName ?? getMonsterById(id).name)
     );
 
     if (clans.length == 0) {
