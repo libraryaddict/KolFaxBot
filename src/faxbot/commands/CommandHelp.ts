@@ -29,6 +29,9 @@ export class CommandHelp implements FaxCommand {
     messages.push(
       `Send me the name or ID of a monster and not only will I cosplay for you, I will take a selfie and deliver it to your clan for your personal perview.`
     );
+    messages.push(
+      `You can view a list of monsters at https://onlyfax.loathers.net/`
+    );
 
     for (const message of messages) {
       await this.controller.client.sendPrivateMessage(sender, message);
