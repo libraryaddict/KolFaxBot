@@ -16,7 +16,6 @@
   },
   "plugins": ["@typescript-eslint", "unused-imports"],
   "rules": {
-    "linebreak-style": ["off", "unix"],
     "quotes": ["off", "double"],
     "no-empty": ["warn"],
     "@typescript-eslint/no-inferrable-types": ["off"],
@@ -28,7 +27,7 @@
     "@typescript-eslint/no-unused-vars": ["off"],
     "unused-imports/no-unused-imports": ["error"],
     "@typescript-eslint/no-floating-promises": ["error"],
-    "@typescript-eslint/no-misused-promises": ["error"],
+    "@typescript-eslint/no-misused-promisdes": ["error"],
     "prefer-arrow/prefer-arrow-functions": ["off"],
     "lines-between-class-members": [
       "warn",
