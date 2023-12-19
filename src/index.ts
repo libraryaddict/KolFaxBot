@@ -3,7 +3,6 @@ import { ParentController } from "./ParentController.js";
 import { App } from "@tinyhttp/app";
 
 const controller = new ParentController();
-
 await controller.startController();
 
 const app = new App();
@@ -31,3 +30,5 @@ app
         .send(formatFaxBotDatabase("json", username, userId))
   )
   .listen(3000);
+
+await controller.startBotHeartbeat();

@@ -43,7 +43,6 @@ export class ParentController {
     this.fortune = new FortuneTeller(this.client);
 
     await this.onNewDay();
-    await this.startBotHeartbeat();
   }
 
   async startBotHeartbeat() {

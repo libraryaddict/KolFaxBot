@@ -10,7 +10,6 @@ export function formatFaxBotDatabase(
   botName: string,
   botId: string
 ): string {
-  console.log("test");
   const monsterList = createMonsterList().sort((s1, s2) =>
     s1.name.localeCompare(s2.name)
   );
