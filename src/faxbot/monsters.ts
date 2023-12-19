@@ -236,6 +236,11 @@ export function createMonsterList(): FaxbotDatabaseMonster[] {
       continue;
     }
 
+    // Prevent dupes
+    if (monsterList.some((list) => list.actual_name == monsterData.name)) {
+      continue;
+    }
+
     const monster: FaxbotDatabaseMonster = {
       name: monsterData.name,
       actual_name: monsterData.name,
