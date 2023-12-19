@@ -1,8 +1,6 @@
 import type { FaxbotDatabase } from "../../utils/Typings";
-import { setMonsterListUpdated } from "./ClanManager";
 import { createMonsterList } from "./MonsterManager";
 import { encodeXML } from "entities";
-import { existsSync, readFileSync, writeFileSync } from "fs";
 
 const constSpace = `\t`;
 
@@ -66,7 +64,7 @@ function createField(name: string, value: unknown, spacing: string): string[] {
 }
 
 export function updateGithub(botName: string, botId: string) {
-  const xmlDest = `./github/${botName}.xml`;
+  /*const xmlDest = `./github/${botName}.xml`;
   const xml = createXml(botName, botId);
   const txtDest = `./github/${botName}.txt`;
   const txt = createTxt();
@@ -82,5 +80,5 @@ export function updateGithub(botName: string, botId: string) {
     modified = true;
   }
 
-  setMonsterListUpdated();
+  setMonsterListUpdated();*/
 }
