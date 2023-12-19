@@ -293,6 +293,7 @@ export function formatMonsterList(
 
 type NestedValue =
   | string
+  | number
   | FaxbotDatabaseMonster
   | { [x: string]: NestedValue }
   | NestedValue[];
@@ -331,7 +332,6 @@ function createXMLField(
 
     strings.push(`${spacing}</${name}>`);
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     strings.push(`${spacing}<${name}>${encodeXML(value.toString())}</${name}>`);
   }
 
