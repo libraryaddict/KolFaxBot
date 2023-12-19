@@ -1,4 +1,4 @@
-import type { KOLMessage, PublicMessageType } from "./Typings";
+import type { KOLMessage, PublicMessageType } from "./Typings.js";
 import { decode, encode } from "html-entities";
 
 /**

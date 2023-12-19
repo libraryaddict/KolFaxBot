@@ -1,5 +1,5 @@
-import { config } from "../../config";
-import type { KoLClient } from "../../utils/KoLClient";
+import { config } from "../../config.js";
+import type { KoLClient } from "../../utils/KoLClient.js";
 
 export class FortuneTeller {
   private fortuneTeller: "UNTESTED" | "EXISTS" | "DOESNT EXIST" = `UNTESTED`;
@@ -19,7 +19,7 @@ export class FortuneTeller {
     }
 
     let page: string = await this.client.visitUrl(`clan_viplounge.php`, {
-      preaction: `lovetester`
+      preaction: `lovetester`,
     });
 
     // Only set to true if we're explicitly denied entry
@@ -33,7 +33,7 @@ export class FortuneTeller {
     }
 
     page = await this.client.visitUrl(`choice.php`, {
-      forceoption: `0`
+      forceoption: `0`,
     });
 
     // Only set to false if we've explicitly seen the teller
@@ -53,7 +53,7 @@ export class FortuneTeller {
         q2: `robin`,
         q3: `thin`,
         preaction: `dotestlove`,
-        testlove: userId
+        testlove: userId,
       });
 
       promises.push(promise);

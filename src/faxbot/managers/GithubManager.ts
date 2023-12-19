@@ -1,13 +1,18 @@
-import type { FaxbotDatabase } from "../../utils/Typings";
-import { createMonsterList } from "./MonsterManager";
+import type { FaxbotDatabase } from "../../utils/Typings.js";
+import { createMonsterList } from "./MonsterManager.js";
 import { encodeXML } from "entities";
-import dedent from "ts-dedent";
+import { dedent } from "ts-dedent";
 
 const constSpace = `\t`;
 
-export function formatFaxBotDatabase(format: "xml" | "json" | "md", botName: string, botId: string): string {
-  const monsterList = createMonsterList().sort(
-    (s1, s2) => s1.name.localeCompare(s2.name)
+export function formatFaxBotDatabase(
+  format: "xml" | "json" | "md",
+  botName: string,
+  botId: string
+): string {
+  console.log("test");
+  const monsterList = createMonsterList().sort((s1, s2) =>
+    s1.name.localeCompare(s2.name)
   );
 
   if (format === "md") {
@@ -16,7 +21,7 @@ export function formatFaxBotDatabase(format: "xml" | "json" | "md", botName: str
       ===
 
       ${monsterList.map((m) => m.command).join("\n")}
-    `
+    `;
   }
 
   const data = {

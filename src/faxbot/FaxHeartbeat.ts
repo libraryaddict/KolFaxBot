@@ -1,6 +1,6 @@
-import type { ParentController } from "../ParentController";
-import { FaxRollover } from "./tasks/FaxRollover";
-import { MessageHandler } from "./tasks/MessageHandler";
+import type { ParentController } from "../ParentController.js";
+import { FaxRollover } from "./tasks/FaxRollover.js";
+import { MessageHandler } from "./tasks/MessageHandler.js";
 import { Mutex } from "async-mutex";
 
 export class FaxHeartbeat {

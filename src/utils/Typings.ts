@@ -1,4 +1,4 @@
-import type { FaxMessages } from "./FaxMessages";
+import type { FaxMessages } from "./FaxMessages.js";
 
 export type KOLCredentials = {
   sessionCookies: string;

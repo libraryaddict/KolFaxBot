@@ -1,7 +1,7 @@
-import { config } from "../config";
-import type { ParentController } from "../ParentController";
-import { addLog } from "../Settings";
-import { FaxMessages } from "../utils/FaxMessages";
+import { config } from "../config.js";
+import type { ParentController } from "../ParentController.js";
+import { addLog } from "../Settings.js";
+import { FaxMessages } from "../utils/FaxMessages.js";
 import type {
   ClanJoinAttempt,
   DepositedFax,
@@ -9,19 +9,19 @@ import type {
   KoLClan,
   KOLMessage,
   KoLUser,
-} from "../utils/Typings";
-import type { FaxRequest } from "./faxrequests/FaxRequest";
-import { FaxOutcome, PlayerFaxRequest } from "./faxrequests/FaxRequest";
+} from "../utils/Typings.js";
+import type { FaxRequest } from "./faxrequests/FaxRequest.js";
+import { FaxOutcome, PlayerFaxRequest } from "./faxrequests/FaxRequest.js";
 import {
   getClanById,
   getClanByMonster,
   getClanDataById,
   setFaxMonster,
   updateClan,
-} from "./managers/ClanManager";
-import { addFaxLog } from "./managers/DatabaseManager";
-import { getMonster, tryUpdateMonsters } from "./managers/MonsterManager";
-import type { FaxAdministration } from "./tasks/FaxAdministration";
+} from "./managers/ClanManager.js";
+import { addFaxLog } from "./managers/DatabaseManager.js";
+import { getMonster, tryUpdateMonsters } from "./managers/MonsterManager.js";
+import type { FaxAdministration } from "./tasks/FaxAdministration.js";
 
 export class FaxOperations {
   privateMessages: KOLMessage[] = [];

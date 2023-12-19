@@ -1,4 +1,4 @@
-import type { KoLUser } from "../../utils/Typings";
+import type { KoLUser } from "../../utils/Typings.js";
 
 export interface FaxCommand {
   isRestricted(): boolean;

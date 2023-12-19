@@ -1,25 +1,25 @@
-import { config } from "./config";
-import { FaxHeartbeat } from "./faxbot/FaxHeartbeat";
-import { FaxOperations } from "./faxbot/FaxOperations";
+import { config } from "./config.js";
+import { FaxHeartbeat } from "./faxbot/FaxHeartbeat.js";
+import { FaxOperations } from "./faxbot/FaxOperations.js";
 import {
   getClanById,
   isUnknownMonsterInClanData,
   loadClans,
-} from "./faxbot/managers/ClanManager";
+} from "./faxbot/managers/ClanManager.js";
 import {
   loadMonsters,
   tryUpdateMonsters,
-} from "./faxbot/managers/MonsterManager";
-import { FaxAdministration } from "./faxbot/tasks/FaxAdministration";
-import { FortuneTeller } from "./faxbot/tasks/FortuneTeller";
-import { addLog } from "./Settings";
-import { KoLClient } from "./utils/KoLClient";
+} from "./faxbot/managers/MonsterManager.js";
+import { FaxAdministration } from "./faxbot/tasks/FaxAdministration.js";
+import { FortuneTeller } from "./faxbot/tasks/FortuneTeller.js";
+import { addLog } from "./Settings.js";
+import { KoLClient } from "./utils/KoLClient.js";
 import {
   getKolDay,
   getSecondsElapsedInDay,
   getSecondsToNearestRollover,
   getSecondsToRollover,
-} from "./utils/Utils";
+} from "./utils/Utils.js";
 
 export class ParentController {
   fortune: FortuneTeller;

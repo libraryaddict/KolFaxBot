@@ -1,6 +1,6 @@
-import type { ParentController } from "../../ParentController";
-import type { KoLUser } from "../../utils/Typings";
-import type { FaxCommand } from "./FaxCommand";
+import type { ParentController } from "../../ParentController.js";
+import type { KoLUser } from "../../utils/Typings.js";
+import type { FaxCommand } from "./FaxCommand.js";
 
 export class CommandHelp implements FaxCommand {
   controller: ParentController;

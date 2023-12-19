@@ -13,7 +13,9 @@ export const schema = {
   RUN_FAX_ROLLOVER: Boolean,
   RUN_DANGEROUS_FAX_ROLLOVER: Boolean,
 
-  BOT_CONTROLLERS: String
+  BOT_CONTROLLERS: String,
+
+  TESTING: Boolean,
 };
 
 export type Env = EnvType<typeof schema>;

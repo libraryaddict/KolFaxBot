@@ -1,7 +1,10 @@
-import { addLog } from "../../Settings";
-import type { FaxbotDatabaseMonster, MonsterData } from "../../utils/Typings";
-import { getFaxSourceClans, setMonsterListOutdated } from "./ClanManager";
-import { loadMonstersFromDatabase, saveMonsters } from "./DatabaseManager";
+import { addLog } from "../../Settings.js";
+import type {
+  FaxbotDatabaseMonster,
+  MonsterData,
+} from "../../utils/Typings.js";
+import { getFaxSourceClans, setMonsterListOutdated } from "./ClanManager.js";
+import { loadMonstersFromDatabase, saveMonsters } from "./DatabaseManager.js";
 import axios from "axios";
 
 const monsters: MonsterData[] = [];

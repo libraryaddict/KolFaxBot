@@ -1,8 +1,8 @@
 import type {
   DepositedFax,
   FaxClanData,
-  MonsterData
-} from "../../utils/Typings";
+  MonsterData,
+} from "../../utils/Typings.js";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -13,7 +13,7 @@ export async function loadClansFromDatabase(): Promise<FaxClanData[]> {
 
   for (const clan of clans) {
     list.push({
-      ...clan
+      ...clan,
     });
   }
 
@@ -28,7 +28,7 @@ export async function saveClan(faxClan: FaxClanData) {
       faxMonster: faxClan.faxMonster,
       faxMonsterId: faxClan.faxMonsterId,
       faxMonsterLastChanged: faxClan.faxMonsterLastChanged,
-      clanLastChecked: faxClan.clanLastChecked
+      clanLastChecked: faxClan.clanLastChecked,
     },
     create: {
       clanId: faxClan.clanId,
@@ -38,8 +38,8 @@ export async function saveClan(faxClan: FaxClanData) {
       faxMonsterId: faxClan.faxMonsterId,
       faxMonsterLastChanged: faxClan.faxMonsterLastChanged,
       clanFirstAdded: faxClan.clanFirstAdded,
-      clanLastChecked: faxClan.clanLastChecked
-    }
+      clanLastChecked: faxClan.clanLastChecked,
+    },
   });
 }
 
@@ -56,8 +56,8 @@ export async function addFaxLog(fax: DepositedFax) {
       completed: fax.completed,
       started: fax.requested,
       outcome: fax.outcome,
-      faxRequest: fax.request
-    }
+      faxRequest: fax.request,
+    },
   });
 }
 
@@ -69,7 +69,7 @@ export async function loadMonstersFromDatabase(): Promise<MonsterData[]> {
     list.push({
       id: monsterData.monsterId,
       name: monsterData.mafiaName,
-      manualName: monsterData.manualName
+      manualName: monsterData.manualName,
     });
   }
 
@@ -83,12 +83,12 @@ export async function saveMonsters(monsters: MonsterData[]) {
       create: {
         monsterId: monster.id,
         mafiaName: monster.name,
-        manualName: monster.manualName
+        manualName: monster.manualName,
       },
       update: {
         mafiaName: monster.name,
-        manualName: monster.manualName
-      }
+        manualName: monster.manualName,
+      },
     });
   }
 }

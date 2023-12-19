@@ -1,5 +1,8 @@
-import { getClanDataById, getClanType } from "../faxbot/managers/ClanManager";
-import { addLog } from "../Settings";
+import {
+  getClanDataById,
+  getClanType,
+} from "../faxbot/managers/ClanManager.js";
+import { addLog } from "../Settings.js";
 import type {
   ClanJoinAttempt,
   CombatMacro,
@@ -13,12 +16,12 @@ import type {
   PhotoInfo,
   UserClan,
   UserInfo,
-} from "./Typings";
+} from "./Typings.js";
 import {
   getSecondsToNearestRollover,
   getSecondsToRollover,
   splitMessage,
-} from "./Utils";
+} from "./Utils.js";
 import { Mutex } from "async-mutex";
 import type { Axios, AxiosResponse } from "axios";
 import axios from "axios";

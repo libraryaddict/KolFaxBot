@@ -1,14 +1,14 @@
-import { config } from "../../config";
-import type { FaxMessages } from "../../utils/FaxMessages";
-import type { KoLClient } from "../../utils/KoLClient";
+import { config } from "../../config.js";
+import type { FaxMessages } from "../../utils/FaxMessages.js";
+import type { KoLClient } from "../../utils/KoLClient.js";
 import type {
   DepositedFax,
   FaxClanData,
   KoLClan,
   KoLUser,
   MonsterData,
-} from "../../utils/Typings";
-import { getClanByMonster } from "../managers/ClanManager";
+} from "../../utils/Typings.js";
+import { getClanByMonster } from "../managers/ClanManager.js";
 
 export enum FaxOutcome {
   FAILED,
