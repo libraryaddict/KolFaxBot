@@ -1,7 +1,6 @@
 import { config } from "../config.js";
 import type { ParentController } from "../ParentController.js";
 import { addLog } from "../Settings.js";
-import { FaxMessages } from "../utils/faxMessages.js";
 import type {
   ClanJoinAttempt,
   DepositedFax,
@@ -10,6 +9,7 @@ import type {
   KOLMessage,
   KoLUser,
 } from "../types.js";
+import { FaxMessages } from "../utils/faxMessages.js";
 import type { FaxRequest } from "./faxrequests/FaxRequest.js";
 import { FaxOutcome, PlayerFaxRequest } from "./faxrequests/FaxRequest.js";
 import {
