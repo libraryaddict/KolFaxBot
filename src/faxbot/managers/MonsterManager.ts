@@ -1,10 +1,11 @@
 import { addLog } from "../../Settings.js";
+import { invalidateReportCache } from "../../utils/reportCacheMiddleware.js";
 import type {
   FaxbotDatabaseMonster,
   MonsterCategory,
   MonsterData,
 } from "../../utils/Typings.js";
-import { getFaxSourceClans, setMonsterListOutdated } from "./ClanManager.js";
+import { getFaxSourceClans } from "./ClanManager.js";
 import { loadMonstersFromDatabase, saveMonsters } from "./DatabaseManager.js";
 import axios from "axios";
 
@@ -28,7 +29,7 @@ async function updateMonsterData() {
 
   await loadMonstersByString(fetchedFile.toString());
   await loadMonsters();
-  setMonsterListOutdated();
+  invalidateReportCache();
 }
 
 async function loadMonstersByString(monstersFile: string) {

@@ -1,4 +1,5 @@
 import { addLog } from "../../Settings.js";
+import { invalidateReportCache } from "../../utils/reportCacheMiddleware.js";
 import type {
   ClanType,
   FaxClanData,
@@ -15,19 +16,6 @@ import { getMonster, getMonsterById } from "./MonsterManager.js";
 
 // The clans we have access to. If we lose access to a clan, we will remove them from this list
 const clans: FaxClanData[] = [];
-let updateMonsterList: boolean = false;
-
-export function setMonsterListUpdated() {
-  updateMonsterList = false;
-}
-
-export function isMonsterListOutdated() {
-  return updateMonsterList;
-}
-
-export function setMonsterListOutdated() {
-  return updateMonsterList;
-}
 
 export function getClanById(id: number): UserClan {
   const def = clans.find((c) => c.clanId == id);
@@ -158,7 +146,7 @@ export async function updateClan(clan: FaxClanData) {
     clan = existing;
   } else {
     clans.push(clan);
-    updateMonsterList = true;
+    invalidateReportCache();
   }
 
   if (clan.clanLastChecked == 0) {
@@ -185,7 +173,7 @@ export async function removeInaccessibleClans(clansWeCanAccess: KoLClan[]) {
     await removeClan(clan.clanId);
   }
 
-  updateMonsterList = true;
+  invalidateReportCache();
 }
 
 export function getUnknownClans(whitelistedClans: KoLClan[]): KoLClan[] {
@@ -214,7 +202,7 @@ export async function setFaxMonster(
   }
 
   clan.faxMonster = monsterName;
-  updateMonsterList = true;
+  invalidateReportCache();
   await updateClan(clan);
 }
 

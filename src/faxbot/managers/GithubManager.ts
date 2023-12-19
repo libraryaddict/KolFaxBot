@@ -1,4 +1,7 @@
-import type { FaxbotDatabase } from "../../utils/Typings.js";
+import type {
+  FaxbotDatabase,
+  FaxbotDatabaseMonster,
+} from "../../utils/Typings.js";
 import { createMonsterList } from "./MonsterManager.js";
 import { encodeXML } from "entities";
 import { dedent } from "ts-dedent";
@@ -41,7 +44,17 @@ export function formatFaxBotDatabase(
   return JSON.stringify(data);
 }
 
-function createField(name: string, value: unknown, spacing: string): string[] {
+type NestedValue =
+  | string
+  | FaxbotDatabaseMonster
+  | { [x: string]: NestedValue }
+  | NestedValue[];
+
+function createField(
+  name: string,
+  value: NestedValue,
+  spacing: string
+): string[] {
   const strings: string[] = [];
 
   if (Array.isArray(value)) {
