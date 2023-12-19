@@ -16,12 +16,12 @@ import type {
   PhotoInfo,
   UserClan,
   UserInfo,
-} from "./Typings.js";
+} from "../types.js";
 import {
   getSecondsToNearestRollover,
   getSecondsToRollover,
   splitMessage,
-} from "./Utils.js";
+} from "./utils.js";
 import { Mutex } from "async-mutex";
 import type { Axios, AxiosResponse } from "axios";
 import axios from "axios";

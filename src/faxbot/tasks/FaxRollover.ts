@@ -1,15 +1,15 @@
 import { config } from "../../config.js";
 import type { ParentController } from "../../ParentController.js";
 import { addLog } from "../../Settings.js";
-import type { EquipSlot, FaxClanData } from "../../utils/Typings.js";
-import { getKolDay } from "../../utils/Utils.js";
+import type { EquipSlot, FaxClanData } from "../../types.js";
+import { getKolDay } from "../../utils/utils.js";
 import { FaxOutcome, RolloverFaxRequest } from "../faxrequests/FaxRequest.js";
 import {
   getRolloverFax,
   setFaxMonster,
   updateClan,
 } from "../managers/ClanManager.js";
-import { getMonsterById } from "../managers/MonsterManager.js";
+import { getMonsterById } from "../monsters.js";
 
 export class FaxRollover {
   controller: ParentController;

@@ -1,7 +1,7 @@
 import { config } from "../../config.js";
 import type { ParentController } from "../../ParentController.js";
 import { addLog } from "../../Settings.js";
-import type { DepositedFax, KoLClan } from "../../utils/Typings.js";
+import type { DepositedFax, KoLClan } from "../../types.js";
 import type { FaxRequest } from "../faxrequests/FaxRequest.js";
 import { PlayerFaxRequest } from "../faxrequests/FaxRequest.js";
 import {

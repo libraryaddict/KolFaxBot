@@ -1,4 +1,4 @@
-import { formatFaxBotDatabase } from "./faxbot/managers/GithubManager.js";
+import { formatMonsterList } from "./faxbot/monsters.js";
 import { ParentController } from "./ParentController.js";
 import { cacheReports } from "./utils/reportCacheMiddleware.js";
 import { App } from "@tinyhttp/app";
@@ -17,21 +17,21 @@ app
   .use(cacheReports())
   .get(
     "/",
-    (_, res) => void res.send(formatFaxBotDatabase("md", username, userId))
+    (_, res) => void res.send(formatMonsterList("md", username, userId))
   )
   .get(
     "/onlyfax.xml",
     (_, res) =>
       void res
         .header("Content-Type", "text/xml")
-        .send(formatFaxBotDatabase("xml", username, userId))
+        .send(formatMonsterList("xml", username, userId))
   )
   .get(
     "/onlyfax.json",
     (_, res) =>
       void res
         .header("Content-Type", "application/json")
-        .send(formatFaxBotDatabase("json", username, userId))
+        .send(formatMonsterList("json", username, userId))
   )
   .listen(3000);
 

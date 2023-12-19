@@ -6,10 +6,7 @@ import {
   isUnknownMonsterInClanData,
   loadClans,
 } from "./faxbot/managers/ClanManager.js";
-import {
-  loadMonsters,
-  tryUpdateMonsters,
-} from "./faxbot/managers/MonsterManager.js";
+import { loadMonsters, tryUpdateMonsters } from "./faxbot/monsters.js";
 import { FaxAdministration } from "./faxbot/tasks/FaxAdministration.js";
 import { FortuneTeller } from "./faxbot/tasks/FortuneTeller.js";
 import { addLog } from "./Settings.js";
@@ -19,7 +16,7 @@ import {
   getSecondsElapsedInDay,
   getSecondsToNearestRollover,
   getSecondsToRollover,
-} from "./utils/Utils.js";
+} from "./utils/utils.js";
 
 export class ParentController {
   fortune: FortuneTeller;

@@ -1,8 +1,4 @@
-import type {
-  DepositedFax,
-  FaxClanData,
-  MonsterData,
-} from "../../utils/Typings.js";
+import type { DepositedFax, FaxClanData, MonsterData } from "../../types.js";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();

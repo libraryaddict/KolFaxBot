@@ -1,7 +1,7 @@
 import { config } from "../config.js";
 import type { ParentController } from "../ParentController.js";
 import { addLog } from "../Settings.js";
-import { FaxMessages } from "../utils/FaxMessages.js";
+import { FaxMessages } from "../utils/faxMessages.js";
 import type {
   ClanJoinAttempt,
   DepositedFax,
@@ -9,7 +9,7 @@ import type {
   KoLClan,
   KOLMessage,
   KoLUser,
-} from "../utils/Typings.js";
+} from "../types.js";
 import type { FaxRequest } from "./faxrequests/FaxRequest.js";
 import { FaxOutcome, PlayerFaxRequest } from "./faxrequests/FaxRequest.js";
 import {
@@ -20,7 +20,7 @@ import {
   updateClan,
 } from "./managers/ClanManager.js";
 import { addFaxLog } from "./managers/DatabaseManager.js";
-import { getMonster, tryUpdateMonsters } from "./managers/MonsterManager.js";
+import { getMonster, tryUpdateMonsters } from "./monsters.js";
 import type { FaxAdministration } from "./tasks/FaxAdministration.js";
 
 export class FaxOperations {

@@ -6,13 +6,13 @@ import type {
   KoLClan,
   MonsterData,
   UserClan,
-} from "../../utils/Typings.js";
+} from "../../types.js";
 import {
   loadClansFromDatabase,
   removeClan,
   saveClan,
 } from "./DatabaseManager.js";
-import { getMonster, getMonsterById } from "./MonsterManager.js";
+import { getMonster, getMonsterById } from "../monsters.js";
 
 // The clans we have access to. If we lose access to a clan, we will remove them from this list
 const clans: FaxClanData[] = [];
