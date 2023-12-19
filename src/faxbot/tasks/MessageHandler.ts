@@ -6,8 +6,6 @@ import { CommandAddMonster } from "../commands/CommandAddMonster";
 import { CommandHelp } from "../commands/CommandHelp";
 import { CommandRefresh } from "../commands/CommandRefresh";
 import type { FaxCommand } from "../commands/FaxCommand";
-import { isMonsterListOutdated } from "../managers/ClanManager";
-import { updateGithub } from "../managers/GithubManager";
 import type { FaxAdministration } from "./FaxAdministration";
 
 export class MessageHandler {
@@ -52,13 +50,6 @@ export class MessageHandler {
 
     if (messages.length > 0) {
       return;
-    }
-
-    if (isMonsterListOutdated()) {
-      updateGithub(
-        this.getClient().getUsername(),
-        this.getClient().getUserID()
-      );
     }
 
     await this.admin.runAdministration();

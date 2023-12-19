@@ -1,34 +1,40 @@
 import type { FaxbotDatabase } from "../../utils/Typings";
 import { createMonsterList } from "./MonsterManager";
 import { encodeXML } from "entities";
+import dedent from "ts-dedent";
 
 const constSpace = `\t`;
 
-function createXml(botName: string, botId: string) {
-  const toSerialize: FaxbotDatabase = {
+export function formatFaxBotDatabase(format: "xml" | "json" | "md", botName: string, botId: string): string {
+  const monsterList = createMonsterList().sort(
+    (s1, s2) => s1.name.localeCompare(s2.name)
+  );
+
+  if (format === "md") {
+    return dedent`
+      ${botName} (#${botId})
+      ===
+
+      ${monsterList.map((m) => m.command).join("\n")}
+    `
+  }
+
+  const data = {
     botdata: {
       name: botName,
       playerid: botId,
     },
-    monsterlist: { monsterdata: createMonsterList() },
-  };
+    monsterlist: { monsterdata: monsterList },
+  } satisfies FaxbotDatabase;
 
-  toSerialize.monsterlist.monsterdata.sort((s1, s2) =>
-    s1.name.localeCompare(s2.name)
-  );
+  if (format === "xml") {
+    const strings: string[] = [`<?xml version="1.0" encoding="UTF-8"?>`];
+    strings.push(...createField(`faxbot`, data, ``));
 
-  const strings: string[] = [`<?xml version="1.0" encoding="UTF-8"?>`];
-  strings.push(...createField(`faxbot`, toSerialize, ``));
+    return strings.join(`\n`);
+  }
 
-  return strings.join(`\n`);
-}
-
-function createTxt() {
-  const monsters = createMonsterList();
-
-  monsters.sort((s1, s2) => s1.name.localeCompare(s2.name));
-
-  return monsters.map((m) => m.command).join(`\n`);
+  return JSON.stringify(data);
 }
 
 function createField(name: string, value: unknown, spacing: string): string[] {
@@ -61,24 +67,4 @@ function createField(name: string, value: unknown, spacing: string): string[] {
   }
 
   return strings;
-}
-
-export function updateGithub(botName: string, botId: string) {
-  /*const xmlDest = `./github/${botName}.xml`;
-  const xml = createXml(botName, botId);
-  const txtDest = `./github/${botName}.txt`;
-  const txt = createTxt();
-  let modified = false;
-
-  if (!existsSync(xmlDest) || readFileSync(xmlDest, `utf-8`) != xml) {
-    writeFileSync(xmlDest, xml);
-    modified = true;
-  }
-
-  if (!existsSync(txtDest) || readFileSync(txtDest, `utf-8`) != txt) {
-    writeFileSync(txtDest, txt);
-    modified = true;
-  }
-
-  setMonsterListUpdated();*/
 }

@@ -3,11 +3,11 @@
     "es2021": true
   },
   "extends": [
-    "prettier",
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/eslint-recommended",
-    "prisma"
+    "prisma",
+    "prettier"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -17,7 +17,6 @@
   "plugins": ["@typescript-eslint", "unused-imports"],
   "rules": {
     "linebreak-style": ["off", "unix"],
-    "quotes": ["off", "double"],
     "no-empty": ["warn"],
     "@typescript-eslint/no-inferrable-types": ["off"],
     "no-constant-condition": ["off"],
