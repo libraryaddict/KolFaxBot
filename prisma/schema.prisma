@@ -25,6 +25,7 @@ model MonsterData {
     monsterId  Int     @id @unique
     mafiaName  String
     manualName String?
+    category   String? @default("Other")
 }
 
 model FaxRecord {

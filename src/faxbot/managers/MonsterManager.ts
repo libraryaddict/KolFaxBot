@@ -1,5 +1,9 @@
 import { addLog } from "../../Settings";
-import type { FaxbotDatabaseMonster, MonsterData } from "../../utils/Typings";
+import type {
+  FaxbotDatabaseMonster,
+  MonsterCategory,
+  MonsterData,
+} from "../../utils/Typings";
 import { getFaxSourceClans, setMonsterListOutdated } from "./ClanManager";
 import { loadMonstersFromDatabase, saveMonsters } from "./DatabaseManager";
 import axios from "axios";
@@ -42,15 +46,63 @@ async function loadMonstersByString(monstersFile: string) {
     }
 
     const manual = match[2].match(/Manuel: (?:([^ ]*)|"(.*?)"(?:$| ))/);
+    let category: MonsterCategory = `Other`;
+
+    if (line.includes(`NOWISH`)) {
+      category = `Unwishable`;
+    }
 
     const data: MonsterData = {
       id: parseInt(match[2]),
       name: match[1],
       manualName: manual == null ? null : manual[1] ?? manual[2],
-      category: line.includes(`NOWISH`) ? `Unwishable` : null,
+      category: category,
     };
 
     monsters.push(data);
+  }
+
+  const couldMatch = (name1: string, name2: string) => {
+    if ((name1 ?? ``) == `` || (name2 ?? ``) == ``) {
+      return false;
+    }
+
+    // Turn [32]goblin into goblin
+    // Turn goblin (blind) into goblin
+    name1 = name1
+      .toLowerCase()
+      .replaceAll(/[([].+?[\])]/g, ``)
+      .replaceAll(/[^a-z0-9]/g, ``);
+    name2 = name2
+      .toLowerCase()
+      .replaceAll(/[([].+?[\])]/g, ``)
+      .replaceAll(/[^a-z0-9]/g, ``);
+
+    return name1 == name2;
+  };
+
+  for (const monster of monsters) {
+    const isAmbiguous = monsters.some((m) => {
+      if (m.id == monster.id) {
+        return false;
+      }
+
+      for (const m1 of [monster.name, monster.manualName]) {
+        for (const m2 of [m.name, m.manualName]) {
+          if (couldMatch(m1, m2)) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    });
+
+    if (!isAmbiguous) {
+      continue;
+    }
+
+    monster.category = `Ambiguous`;
   }
 
   await saveMonsters(monsters);
@@ -80,45 +132,6 @@ export async function loadMonsters() {
 
   monsters.splice(0);
   monsters.push(...dbMonsters);
-
-  const couldMatch = (name1: string, name2: string) => {
-    if ((name1 ?? ``) == `` || (name2 ?? ``) == ``) {
-      return false;
-    }
-
-    // Turn [32]goblin into goblin
-    // Turn goblin (blind) into goblin
-    name1 = name1
-      .toLowerCase()
-      .replaceAll(/[([].+?[\])]/g, ``)
-      .replaceAll(/[^a-z0-9]/g, ``);
-    name2 = name2
-      .toLowerCase()
-      .replaceAll(/[([].+?[\])]/g, ``)
-      .replaceAll(/[^a-z0-9]/g, ``);
-
-    return name1 == name2;
-  };
-
-  for (const monster of monsters) {
-    const matches = monsters.filter((m) => {
-      if (m.id == monster.id) {
-        return false;
-      }
-
-      for (const m1 of [monster.name, monster.manualName]) {
-        for (const m2 of [m.name, m.manualName]) {
-          if (couldMatch(m1, m2)) {
-            return true;
-          }
-        }
-      }
-
-      return false;
-    });
-
-    monster.ambiguous = matches.length > 0;
-  }
 
   addLog(`Loaded ${monsters.length} monsters`);
 }

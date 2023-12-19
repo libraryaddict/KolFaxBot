@@ -111,6 +111,7 @@ export type ClanJoinAttempt =
   | "Unknown";
 
 export type ClanType = "Fax Source" | "Random Clan";
+export type MonsterCategory = "Unwishable" | "Ambiguous" | "Farming" | "Other";
 
 export interface FaxClanData {
   clanId: number;
@@ -127,8 +128,7 @@ export interface MonsterData {
   id: number;
   name: string; // Name as written in mafia data, this isn't to be relied on for direct comparison with kol monster names as kolmafia adds info to monster names when there's dupes and stuff
   manualName?: string; // Name as reported in manual, more reliable than `name`
-  ambiguous?: boolean; // If there's possibly another monster that could conflict in name
-  category?: string;
+  category?: MonsterCategory;
 }
 
 export interface BotState {
