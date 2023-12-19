@@ -17,13 +17,16 @@ app
   .use(cacheReports())
   .get(
     "/",
-    (_, res) => void res.send(formatMonsterList("md", username, userId))
+    (_, res) =>
+      void res
+        .header("Content-Type", "text/plain")
+        .send(formatMonsterList("md", username, userId))
   )
   .get(
     "/onlyfax.xml",
     (_, res) =>
       void res
-        .header("Content-Type", "text/xml")
+        .header("Content-Type", "application/xml")
         .send(formatMonsterList("xml", username, userId))
   )
   .get(
