@@ -15,7 +15,10 @@ export const schema = {
 
   BOT_CONTROLLERS: String,
 
-  TESTING: Boolean,
+  TESTING: {
+    type: Boolean,
+    optional: true,
+  },
 };
 
 export type Env = EnvType<typeof schema>;
