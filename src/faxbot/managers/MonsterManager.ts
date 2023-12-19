@@ -1,6 +1,7 @@
 import { addLog } from "../../Settings.js";
 import type {
   FaxbotDatabaseMonster,
+  MonsterCategory,
   MonsterData,
 } from "../../utils/Typings.js";
 import { getFaxSourceClans, setMonsterListOutdated } from "./ClanManager.js";
