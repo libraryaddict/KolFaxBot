@@ -17,7 +17,8 @@ export const cacheReports = () => {
         return;
       }
 
-      const _send = (body) => res.send(body);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const _send = res.send;
 
       res.send = (body: string) => {
         cache.set(key, body);
