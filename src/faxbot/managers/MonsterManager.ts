@@ -24,7 +24,7 @@ async function updateMonsterData() {
         validateStatus: (status) => status === 200,
       }
     )
-  ).data;
+  ).data as string;
 
   await loadMonstersByString(fetchedFile.toString());
   await loadMonsters();

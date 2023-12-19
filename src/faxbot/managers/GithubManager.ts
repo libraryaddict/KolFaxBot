@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import type { FaxbotDatabase } from "../../utils/Typings";
 import { createMonsterList } from "./MonsterManager";
 import { encodeXML } from "entities";
@@ -57,6 +58,7 @@ function createField(name: string, value: unknown, spacing: string): string[] {
 
     strings.push(`${spacing}</${name}>`);
   } else {
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     strings.push(`${spacing}<${name}>${encodeXML(value.toString())}</${name}>`);
   }
 
