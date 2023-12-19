@@ -109,7 +109,7 @@ export class CommandAddMonster implements FaxCommand {
     for (const [, monsterId] of clans) {
       const monster = getMonsterById(monsterId);
 
-      const name = `[${monster.id}] ${monster.name}`;
+      const name = `[${monster.id}]${monster.name}`;
 
       if (desired.includes(name)) {
         continue;

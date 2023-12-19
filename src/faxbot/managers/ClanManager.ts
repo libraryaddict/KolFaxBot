@@ -124,7 +124,7 @@ export function getClanByMonster(monster: MonsterData): FaxClanData {
       continue;
     }
 
-    if (!monster.ambiguous) {
+    if (monster.category != `Ambiguous`) {
       specificMonster = true;
     }
 
@@ -233,7 +233,7 @@ export function getRolloverFax(): FaxClanData {
       // Loop through the monsters that this fax could be
       for (const m of monsters) {
         // If this monster isn't ambiguous, bit weird if we have multiple matches but ok!
-        if (!m.ambiguous) {
+        if (m.category != `Ambiguous`) {
           continue;
         }
 

@@ -84,10 +84,12 @@ export async function saveMonsters(monsters: MonsterData[]) {
         monsterId: monster.id,
         mafiaName: monster.name,
         manualName: monster.manualName,
+        category: monster.category,
       },
       update: {
         mafiaName: monster.name,
         manualName: monster.manualName,
+        category: monster.category,
       },
     });
   }

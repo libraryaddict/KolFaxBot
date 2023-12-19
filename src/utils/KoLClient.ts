@@ -223,7 +223,7 @@ export class KoLClient {
       graf: `/whois ${name}`,
     });
 
-    const match = page[`output`].match(/">([^(<>)[]+) \(#(\d+)\)</);
+    const match = (page[`output`] as string).match(/">([^(<>)[]+) \(#(\d+)\)</);
 
     if (match == null) {
       addLog(
@@ -458,7 +458,7 @@ export class KoLClient {
         }
 
         this._credentials.sessionCookies = Object.entries(cookies)
-          .map(([key, value]) => `${key}=${value}`)
+          .map(([key, value]) => `${key}=${value as string}`)
           .join(`; `);
       }
 

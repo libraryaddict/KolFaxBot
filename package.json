@@ -9,7 +9,9 @@
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "start": "node ./dist/index.js",
-    "run": "npm run build && npm start"
+    "run": "npm run build && npm start",
+    "lint": "yarn run eslint src --ext .ts && yarn run prettier --check .",
+    "format": "prettier --write ."
   },
   "repository": {
     "type": "git",
