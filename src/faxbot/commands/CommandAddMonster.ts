@@ -1,8 +1,11 @@
-import type { ParentController } from "../../ParentController";
-import type { KoLUser } from "../../utils/Typings";
-import { getSpecificFaxSources, setFaxMonster } from "../managers/ClanManager";
-import { getMonster, getMonsterById } from "../managers/MonsterManager";
-import type { FaxCommand } from "./FaxCommand";
+import type { ParentController } from "../../ParentController.js";
+import type { KoLUser } from "../../types.js";
+import {
+  getSpecificFaxSources,
+  setFaxMonster,
+} from "../managers/ClanManager.js";
+import { getMonster, getMonsterById } from "../monsters.js";
+import type { FaxCommand } from "./FaxCommand.js";
 
 export class CommandAddMonster implements FaxCommand {
   controller: ParentController;

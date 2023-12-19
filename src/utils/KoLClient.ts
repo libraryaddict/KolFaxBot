@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { getClanDataById, getClanType } from "../faxbot/managers/ClanManager";
-import { addLog } from "../Settings";
+import {
+  getClanDataById,
+  getClanType,
+} from "../faxbot/managers/ClanManager.js";
+import { addLog } from "../Settings.js";
 import type {
   ClanJoinAttempt,
   CombatMacro,
@@ -15,12 +16,12 @@ import type {
   PhotoInfo,
   UserClan,
   UserInfo,
-} from "./Typings";
+} from "../types.js";
 import {
   getSecondsToNearestRollover,
   getSecondsToRollover,
   splitMessage,
-} from "./Utils";
+} from "./utils.js";
 import { Mutex } from "async-mutex";
 import type { Axios, AxiosResponse } from "axios";
 import axios from "axios";

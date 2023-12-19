@@ -3,11 +3,11 @@
     "es2021": true
   },
   "extends": [
-    "prettier",
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/eslint-recommended",
-    "prisma"
+    "prisma",
+    "prettier"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -16,7 +16,6 @@
   },
   "plugins": ["@typescript-eslint", "unused-imports"],
   "rules": {
-    "quotes": ["off", "double"],
     "no-empty": ["warn"],
     "@typescript-eslint/no-inferrable-types": ["off"],
     "no-constant-condition": ["off"],
@@ -27,7 +26,7 @@
     "@typescript-eslint/no-unused-vars": ["off"],
     "unused-imports/no-unused-imports": ["error"],
     "@typescript-eslint/no-floating-promises": ["error"],
-    "@typescript-eslint/no-misused-promisdes": ["error"],
+    "@typescript-eslint/no-misused-promises": ["error"],
     "prefer-arrow/prefer-arrow-functions": ["off"],
     "lines-between-class-members": [
       "warn",

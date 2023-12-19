@@ -1,14 +1,12 @@
-import { config } from "../../config";
-import type { ParentController } from "../../ParentController";
-import { FaxMessages } from "../../utils/FaxMessages";
-import type { KOLMessage } from "../../utils/Typings";
-import { CommandAddMonster } from "../commands/CommandAddMonster";
-import { CommandHelp } from "../commands/CommandHelp";
-import { CommandRefresh } from "../commands/CommandRefresh";
-import type { FaxCommand } from "../commands/FaxCommand";
-import { isMonsterListOutdated } from "../managers/ClanManager";
-import { updateGithub } from "../managers/GithubManager";
-import type { FaxAdministration } from "./FaxAdministration";
+import { config } from "../../config.js";
+import type { ParentController } from "../../ParentController.js";
+import type { KOLMessage } from "../../types.js";
+import { FaxMessages } from "../../utils/faxMessages.js";
+import { CommandAddMonster } from "../commands/CommandAddMonster.js";
+import { CommandHelp } from "../commands/CommandHelp.js";
+import { CommandRefresh } from "../commands/CommandRefresh.js";
+import type { FaxCommand } from "../commands/FaxCommand.js";
+import type { FaxAdministration } from "./FaxAdministration.js";
 
 export class MessageHandler {
   controller: ParentController;
@@ -52,13 +50,6 @@ export class MessageHandler {
 
     if (messages.length > 0) {
       return;
-    }
-
-    if (isMonsterListOutdated()) {
-      updateGithub(
-        this.getClient().getUsername(),
-        this.getClient().getUserID()
-      );
     }
 
     await this.admin.runAdministration();

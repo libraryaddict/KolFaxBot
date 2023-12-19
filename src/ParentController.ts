@@ -1,33 +1,32 @@
-import { config } from "./config";
-import { FaxHeartbeat } from "./faxbot/FaxHeartbeat";
-import { FaxOperations } from "./faxbot/FaxOperations";
+import { config } from "./config.js";
+import { FaxOperations } from "./faxbot/FaxOperations.js";
 import {
   getClanById,
   isUnknownMonsterInClanData,
   loadClans,
-} from "./faxbot/managers/ClanManager";
-import {
-  loadMonsters,
-  tryUpdateMonsters,
-} from "./faxbot/managers/MonsterManager";
-import { FaxAdministration } from "./faxbot/tasks/FaxAdministration";
-import { FortuneTeller } from "./faxbot/tasks/FortuneTeller";
-import { addLog } from "./Settings";
-import { KoLClient } from "./utils/KoLClient";
+} from "./faxbot/managers/ClanManager.js";
+import { loadMonsters, tryUpdateMonsters } from "./faxbot/monsters.js";
+import { FaxAdministration } from "./faxbot/tasks/FaxAdministration.js";
+import { FaxRollover } from "./faxbot/tasks/FaxRollover.js";
+import { FortuneTeller } from "./faxbot/tasks/FortuneTeller.js";
+import { MessageHandler } from "./faxbot/tasks/MessageHandler.js";
+import { addLog } from "./Settings.js";
+import { KoLClient } from "./utils/KoLClient.js";
 import {
   getKolDay,
   getSecondsElapsedInDay,
   getSecondsToNearestRollover,
   getSecondsToRollover,
-} from "./utils/Utils";
+} from "./utils/utils.js";
 
 export class ParentController {
   fortune: FortuneTeller;
   faxer: FaxOperations;
-  faxHeartbeat: FaxHeartbeat;
   client: KoLClient;
   admin: FaxAdministration;
   lastSeenDay: number = 0;
+  rollover: FaxRollover;
+  messages: MessageHandler;
 
   async startController() {
     await loadMonsters();
@@ -38,12 +37,12 @@ export class ParentController {
     await this.client.start();
 
     this.admin = new FaxAdministration(this);
-    this.faxHeartbeat = new FaxHeartbeat(this);
     this.faxer = new FaxOperations(this);
     this.fortune = new FortuneTeller(this.client);
+    this.rollover = new FaxRollover(this);
+    this.messages = new MessageHandler(this);
 
     await this.onNewDay();
-    await this.startBotHeartbeat();
   }
 
   async startBotHeartbeat() {
@@ -96,7 +95,11 @@ export class ParentController {
     }
 
     // Finally, let the rest of the bot operate
-    await this.faxHeartbeat.doFaxbotHeartbeat();
+    if (this.client.isRolloverFaxTime()) {
+      await this.rollover.runFaxRollover();
+    }
+
+    await this.messages.pollMessages();
   }
 
   async onNewDay() {

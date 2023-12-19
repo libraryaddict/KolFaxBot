@@ -1,5 +1,5 @@
-import { config } from "../../config";
-import type { KoLClient } from "../../utils/KoLClient";
+import { config } from "../../config.js";
+import type { KoLClient } from "../../utils/KoLClient.js";
 
 export class FortuneTeller {
   private fortuneTeller: "UNTESTED" | "EXISTS" | "DOESNT EXIST" = `UNTESTED`;

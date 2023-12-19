@@ -1,16 +1,16 @@
-import { config } from "../../config";
-import type { ParentController } from "../../ParentController";
-import { addLog } from "../../Settings";
-import type { DepositedFax, KoLClan } from "../../utils/Typings";
-import type { FaxRequest } from "../faxrequests/FaxRequest";
-import { PlayerFaxRequest } from "../faxrequests/FaxRequest";
+import { config } from "../../config.js";
+import type { ParentController } from "../../ParentController.js";
+import { addLog } from "../../Settings.js";
+import type { DepositedFax, KoLClan } from "../../types.js";
+import type { FaxRequest } from "../faxrequests/FaxRequest.js";
+import { PlayerFaxRequest } from "../faxrequests/FaxRequest.js";
 import {
   getClanById,
   getOutdatedClans,
   getUnknownClans,
   removeInaccessibleClans,
   updateClan,
-} from "../managers/ClanManager";
+} from "../managers/ClanManager.js";
 
 export class FaxAdministration {
   controller: ParentController;
@@ -63,6 +63,10 @@ export class FaxAdministration {
       }
 
       await this.getFaxRunner().checkClanInfo(data);
+    }
+
+    if (config.TESTING) {
+      return;
     }
 
     try {
