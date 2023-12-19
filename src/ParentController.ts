@@ -17,7 +17,7 @@ import {
   getSecondsElapsedInDay,
   getSecondsToNearestRollover,
   getSecondsToRollover,
-} from "./utils/utils.js";
+} from "./utils/utilities.js";
 
 export class ParentController {
   fortune: FortuneTeller;

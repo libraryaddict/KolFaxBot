@@ -1,7 +1,7 @@
 import { config } from "../../config.js";
 import type { ParentController } from "../../ParentController.js";
 import type { KOLMessage } from "../../types.js";
-import { FaxMessages } from "../../utils/faxMessages.js";
+import { FaxMessages } from "../../utils/messages.js";
 import { CommandAddMonster } from "../commands/CommandAddMonster.js";
 import { CommandHelp } from "../commands/CommandHelp.js";
 import { CommandRefresh } from "../commands/CommandRefresh.js";

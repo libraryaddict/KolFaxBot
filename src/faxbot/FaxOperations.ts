@@ -9,7 +9,7 @@ import type {
   KOLMessage,
   KoLUser,
 } from "../types.js";
-import { FaxMessages } from "../utils/faxMessages.js";
+import { FaxMessages } from "../utils/messages.js";
 import type { FaxRequest } from "./faxrequests/FaxRequest.js";
 import { FaxOutcome, PlayerFaxRequest } from "./faxrequests/FaxRequest.js";
 import {

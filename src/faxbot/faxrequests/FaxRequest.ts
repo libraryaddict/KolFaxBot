@@ -1,6 +1,4 @@
 import { config } from "../../config.js";
-import type { FaxMessages } from "../../utils/faxMessages.js";
-import type { KoLClient } from "../../utils/KoLClient.js";
 import type {
   DepositedFax,
   FaxClanData,
@@ -8,6 +6,8 @@ import type {
   KoLUser,
   MonsterData,
 } from "../../types.js";
+import type { KoLClient } from "../../utils/KoLClient.js";
+import type { FaxMessages } from "../../utils/messages.js";
 import { getClanByMonster } from "../managers/ClanManager.js";
 
 export enum FaxOutcome {

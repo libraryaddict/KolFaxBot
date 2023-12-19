@@ -2,7 +2,7 @@ import { config } from "../../config.js";
 import type { ParentController } from "../../ParentController.js";
 import { addLog } from "../../Settings.js";
 import type { EquipSlot, FaxClanData } from "../../types.js";
-import { getKolDay } from "../../utils/utils.js";
+import { getKolDay } from "../../utils/utilities.js";
 import { FaxOutcome, RolloverFaxRequest } from "../faxrequests/FaxRequest.js";
 import {
   getRolloverFax,

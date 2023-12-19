@@ -21,7 +21,7 @@ import {
   getSecondsToNearestRollover,
   getSecondsToRollover,
   splitMessage,
-} from "./utils.js";
+} from "./utilities.js";
 import { Mutex } from "async-mutex";
 import type { Axios, AxiosResponse } from "axios";
 import axios from "axios";
