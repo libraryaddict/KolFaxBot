@@ -1,4 +1,9 @@
-import type { DepositedFax, FaxClanData, MonsterData } from "../../types.js";
+import type {
+  DepositedFax,
+  FaxClanData,
+  MonsterCategory,
+  MonsterData,
+} from "../../types.js";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -66,6 +71,7 @@ export async function loadMonstersFromDatabase(): Promise<MonsterData[]> {
       id: monsterData.monsterId,
       name: monsterData.mafiaName,
       manualName: monsterData.manualName,
+      category: monsterData.category as MonsterCategory,
     });
   }
 
