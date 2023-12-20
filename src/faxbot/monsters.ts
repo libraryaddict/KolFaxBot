@@ -117,15 +117,17 @@ async function loadMonstersByString(monstersFile: string) {
 
 let lastUpdate = 0;
 
-export async function tryUpdateMonsters() {
+export async function tryUpdateMonsters(): Promise<boolean> {
   if (lastUpdate + 12 * 60 * 60 * 1000 > Date.now()) {
-    return;
+    return false;
   }
 
   addLog(`Found unrecognized monster, trying to update our list of monsters..`);
   lastUpdate = Date.now();
 
   await updateMonsterData();
+
+  return true;
 }
 
 export async function loadMonsters() {

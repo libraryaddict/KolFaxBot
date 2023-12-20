@@ -1,19 +1,16 @@
-This is a faxbot written in typescript for Kingdom of Loathing
+This is a faxbot written in typescript for Kingdom of Loathing.
 
-## The following is outdated and was intended for an older bot design
+# Setup
 
-The `Settings.json` is the only thing you should need to configure in this script itself.
-`username`: The bot name
-`password`: The bot password
-`botOperator`: The player that runs this bot, used to inform people who to contact when the bot goes wrong
-`defaultClan`: What clan this bot will normally hang out in. Must be clan ID, not name
-`faxDumpClan`: What clan this bot will dump unwanted faxes in, the clan should not be in use and must have a fax machine. Must be clan ID, not name
-`runFaxRollover`: Read below
-`runFaxRolloverBurnTurns`: Read below
-`maintainLeadership`: A map of string keys and values which map to account names and passwords. The bot will log into those accounts daily to keep them active, preventing clan leadership problems.
-`allowedRefreshers`: A string array of user IDs, if a user in this list PM's the bot "refresh", the bot will visit every clan it knows to update the clan information. Being faxbot title, and fax information.
+You will need to copy `.example.env` to `.env` to begin. This file shouldn't be shared for obvious reasons, being a configuration file.
+The clans mentioned in the config use clan IDs.
+
+The fax monster list is served via http on port 3000, to change this you will need to modify the code itself as it was done for the loathers site.
+The FaxBot itself must have a clan VIP invitation, and have chat access.
 
 ## Run Fax Rollover
+
+Rollover faxes has not been tested, and is not being used at this time. The documention here remains for future revisement.
 
 This helps the bot identify monsters by their monster ID, especially when the monster is confusing because kol doesn't tell us which variation of the monster we are looking at.
 

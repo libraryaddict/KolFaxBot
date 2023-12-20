@@ -80,7 +80,7 @@ export class CommandAddMonster implements FaxCommand {
 
     await this.controller.client.sendPrivateMessage(
       sender,
-      `Unknown argument, send 'which' to find what I'm looking for or 'run' to ask me to look in your fax machine to try process it. Send the monster name/ID to check if I need that one.`
+      `Unknown argument, send 'which' to find what I'm looking for or 'run' to ask me to look in your fax machine to try process it. You can also send the monster name/ID to check if I need that one.`
     );
   }
 
@@ -121,7 +121,7 @@ export class CommandAddMonster implements FaxCommand {
     if (desired.length > 10) {
       await this.controller.client.sendPrivateMessage(
         sender,
-        `Too many monsters in demand, reducing to the first 10`
+        `Too many monsters in demand, reducing from ${desired.length} to the last 10 requested`
       );
       desired.splice(10);
     }

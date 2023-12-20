@@ -1,5 +1,6 @@
 import type { ParentController } from "../../ParentController.js";
 import type { KoLClan, KoLUser } from "../../types.js";
+import { tryUpdateMonsters } from "../monsters.js";
 import type { FaxCommand } from "./FaxCommand.js";
 
 export class CommandRefresh implements FaxCommand {
@@ -22,6 +23,26 @@ export class CommandRefresh implements FaxCommand {
   }
 
   async execute(sender: KoLUser, paramters: string): Promise<void> {
+    if (paramters.toLowerCase() != "monsters") {
+      await this.refreshClans(sender, paramters);
+    } else {
+      const result = await tryUpdateMonsters();
+
+      if (!result) {
+        await this.controller.client.sendPrivateMessage(
+          sender,
+          `Unable to update monsters, too soon since last monster update`
+        );
+      } else {
+        await this.controller.client.sendPrivateMessage(
+          sender,
+          `Monster list has been updated!`
+        );
+      }
+    }
+  }
+
+  async refreshClans(sender: KoLUser, paramters: string) {
     let toCheck: KoLClan[] = [];
 
     if (paramters.length > 0) {
