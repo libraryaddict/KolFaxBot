@@ -1,3 +1,4 @@
+import { config } from "../config.js";
 import { addLog } from "../Settings.js";
 import type {
   FaxbotDatabase,
@@ -13,7 +14,7 @@ import {
 } from "./managers/DatabaseManager.js";
 import axios from "axios";
 import { encodeXML } from "entities";
-import { dedent } from "ts-dedent";
+import { readFileSync } from "fs";
 
 const monsters: MonsterData[] = [];
 
@@ -247,10 +248,21 @@ export function createMonsterList(): FaxbotDatabaseMonster[] {
       name: monsterData.name,
       actual_name: monsterData.name,
       command: `[${monsterData.id}]${monsterData.name}`,
-      category: monsterData.category ?? `None`,
+      category: monsterData.category,
     };
 
     monsterList.push(monster);
+  }
+
+  if (config.TESTING) {
+    for (let i = 0; i < 5; i++) {
+      monsterList.push({
+        name: `Test Monster ${i}`,
+        actual_name: `Test Monster ${i}`,
+        command: `[100${i}]Test Monster ${i}`,
+        category: "Test",
+      });
+    }
   }
 
   return monsterList;
@@ -263,7 +275,7 @@ export function getMonsters() {
 const constSpace = `\t`;
 
 export function formatMonsterList(
-  format: "xml" | "json" | "md",
+  format: "xml" | "json" | "html",
   botName: string,
   botId: string
 ): string {
@@ -271,13 +283,25 @@ export function formatMonsterList(
     s1.name.localeCompare(s2.name)
   );
 
-  if (format === "md") {
-    return dedent`
-      ${botName} (#${botId})
-      ===
+  if (format === "html") {
+    let html = readFileSync("./data/main.html", "utf-8");
+    html = html.replaceAll("{Bot Info}", `${botName} (#${botId})`);
+    html = html.replaceAll(
+      "{Monster List}",
+      monsterList
+        .map((m) => {
+          const match = m.command.match(/^(?:\[(\d+)\])?(.*)$/);
 
-      ${monsterList.map((m) => m.command).join("\n")}
-    `;
+          if (match == null) {
+            return "";
+          }
+
+          return `<tr><td>${match[1] ?? "N/A"}</td><td>${match[2]}</td></tr>`;
+        })
+        .join("")
+    );
+
+    return html;
   }
 
   const data = {

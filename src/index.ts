@@ -16,12 +16,8 @@ app
   // to cache every endpoint.
   .use(cacheReports())
   .get("/", (_, res) => {
-    const markdown = formatMonsterList("md", username, userId);
-    void res
-      .header("Content-Type", "text/plain")
-      .send(
-        `<html><head><title>OnlyFax</title></head><body><pre>${markdown}</pre></body></html>`
-      );
+    const html = formatMonsterList("html", username, userId);
+    void res.header("Content-Type", "text/html").send(html);
   })
   .get(
     "/onlyfax.xml",
