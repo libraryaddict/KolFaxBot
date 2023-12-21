@@ -1,7 +1,6 @@
 import type { Request, Response } from "@tinyhttp/app";
 
-const cache = new Map<string, string>();
-const cacheHeaders = new Map<string, string>();
+const cache = new Map<string, { body: string; contentType?: string }>();
 
 export const invalidateReportCache = () => void cache.clear();
 
@@ -10,14 +9,9 @@ export const cacheReports = () => {
     if (req.method === "GET") {
       const key = req.url;
 
-      const value = cache.get(key);
-
-      if (value) {
-        if (cacheHeaders.has(key)) {
-          res.header("Content-Type", cacheHeaders.get(key));
-        }
-
-        res.send(value);
+      if (cache.has(key)) {
+        const { body, contentType } = cache.get(key);
+        res.header("Content-Type", contentType).send(body);
 
         return;
       }
@@ -26,11 +20,10 @@ export const cacheReports = () => {
       const _send = res.send;
 
       res.send = (body: string) => {
-        if (typeof res.getHeader("Content-Type") == "string") {
-          cacheHeaders.set(key, res.getHeader("Content-Type") as string);
-        }
-
-        cache.set(key, body);
+        cache.set(key, {
+          body,
+          contentType: res.getHeader("Content-Type")?.toString() ?? undefined,
+        });
 
         return _send(body);
       };
