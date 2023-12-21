@@ -186,3 +186,10 @@ export function getKolDay() {
 
   return Math.floor(daysSince);
 }
+
+export function formatNumber(number: number) {
+  const str = number.toString().split(".");
+  str[0] = str[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+  return str.join(".");
+}

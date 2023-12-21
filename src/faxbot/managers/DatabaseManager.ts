@@ -62,6 +62,11 @@ export async function addFaxLog(fax: DepositedFax) {
   });
 }
 
+export async function getFaxesServedCount(): Promise<number> {
+  // This technically includes the count of failed faxes or user spam
+  return await prisma.faxRecord.count();
+}
+
 export async function loadMonstersFromDatabase(): Promise<MonsterData[]> {
   const monsters = await prisma.monsterData.findMany();
   const list: MonsterData[] = [];

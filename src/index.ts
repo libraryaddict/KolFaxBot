@@ -15,23 +15,23 @@ app
   // Since every endpoint is a report, for the moment this middleware is just set up
   // to cache every endpoint.
   .use(cacheReports())
-  .get("/", (_, res) => {
-    const html = formatMonsterList("html", username, userId);
+  .get("/", async (_, res) => {
+    const html = await formatMonsterList("html", username, userId);
     void res.header("Content-Type", "text/html").send(html);
   })
   .get(
     "/onlyfax.xml",
-    (_, res) =>
+    async (_, res) =>
       void res
         .header("Content-Type", "application/xml")
-        .send(formatMonsterList("xml", username, userId))
+        .send(await formatMonsterList("xml", username, userId))
   )
   .get(
     "/onlyfax.json",
-    (_, res) =>
+    async (_, res) =>
       void res
         .header("Content-Type", "application/json")
-        .send(formatMonsterList("json", username, userId))
+        .send(await formatMonsterList("json", username, userId))
   )
   .listen(3000);
 

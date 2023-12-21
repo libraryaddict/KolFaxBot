@@ -259,6 +259,10 @@ export function getFaxSourceClans(): FaxClanData[] {
   );
 }
 
+export function getClans() {
+  return clans;
+}
+
 export function isUnknownMonsterInClanData(): boolean {
   return clans.some(
     (c) => c.faxMonster != null && getMonster(c.faxMonster).length == 0

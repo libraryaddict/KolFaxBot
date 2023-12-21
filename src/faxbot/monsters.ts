@@ -7,8 +7,10 @@ import type {
   MonsterData,
 } from "../types.js";
 import { invalidateReportCache } from "../utils/reportCacheMiddleware.js";
-import { getFaxSourceClans } from "./managers/ClanManager.js";
+import { formatNumber } from "../utils/utilities.js";
+import { getClans, getFaxSourceClans } from "./managers/ClanManager.js";
 import {
+  getFaxesServedCount,
   loadMonstersFromDatabase,
   saveMonsters,
 } from "./managers/DatabaseManager.js";
@@ -274,11 +276,11 @@ export function getMonsters() {
 
 const constSpace = `\t`;
 
-export function formatMonsterList(
+export async function formatMonsterList(
   format: "xml" | "json" | "html",
   botName: string,
   botId: string
-): string {
+): Promise<string> {
   const monsterList = createMonsterList().sort((s1, s2) =>
     s1.name.localeCompare(s2.name)
   );
@@ -286,6 +288,18 @@ export function formatMonsterList(
   if (format === "html") {
     let html = readFileSync("./data/main.html", "utf-8");
     html = html.replaceAll("{Bot Info}", `${botName} (#${botId})`);
+    html = html.replaceAll(
+      "{Faxes Served}",
+      formatNumber(await getFaxesServedCount())
+    );
+    html = html.replaceAll(
+      "{Clans Whitelisted}",
+      formatNumber(getClans().length)
+    );
+    html = html.replaceAll(
+      "{Source Clans}",
+      formatNumber(getFaxSourceClans().length)
+    );
     html = html.replaceAll(
       "{Monster List}",
       monsterList

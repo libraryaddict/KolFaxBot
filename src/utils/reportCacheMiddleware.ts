@@ -1,14 +1,23 @@
 import type { Request, Response } from "@tinyhttp/app";
 
+const invalidateCacheAfter = 12 * 60 * 60 * 1000; // 12 hours
 const cache = new Map<string, string>();
 const cacheHeaders = new Map<string, string>();
+let lastInvalidated = Date.now();
 
-export const invalidateReportCache = () => void cache.clear();
+export const invalidateReportCache = () => {
+  cache.clear();
+  lastInvalidated = Date.now();
+};
 
 export const cacheReports = () => {
   return (req: Request, res: Response, next: () => void) => {
     if (req.method === "GET") {
       const key = req.url;
+
+      if (lastInvalidated + invalidateCacheAfter < Date.now()) {
+        invalidateReportCache();
+      }
 
       const value = cache.get(key);
 
