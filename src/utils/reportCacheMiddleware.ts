@@ -11,8 +11,12 @@ export const cacheReports = () => {
 
       if (cache.has(key)) {
         const { body, contentType } = cache.get(key);
-        console.log("Serving from cache", contentType, body);
-        res.header("Content-Type", contentType).send(body);
+
+        try {
+          res.header("Content-Type", contentType).send(body);
+        } catch (error) {
+          console.log("Error while serving from cache", contentType, body);
+        }
 
         return;
       }

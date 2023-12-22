@@ -17,21 +17,17 @@ app
   .use(cacheReports())
   .get("/", (_, res) => {
     const html = formatMonsterList("html", username, userId);
-    void res.header("Content-Type", "text/html").send(html);
+    void res.type("html").send(html);
   })
   .get(
     "/onlyfax.xml",
     (_, res) =>
-      void res
-        .header("Content-Type", "application/xml")
-        .send(formatMonsterList("xml", username, userId))
+      void res.header("xml").send(formatMonsterList("xml", username, userId))
   )
   .get(
     "/onlyfax.json",
     (_, res) =>
-      void res
-        .header("Content-Type", "application/json")
-        .send(formatMonsterList("json", username, userId))
+      void res.type("json").send(formatMonsterList("json", username, userId))
   )
   .listen(3000);
 
