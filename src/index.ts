@@ -22,7 +22,7 @@ app
   .get(
     "/onlyfax.xml",
     (_, res) =>
-      void res.header("xml").send(formatMonsterList("xml", username, userId))
+      void res.type("xml").send(formatMonsterList("xml", username, userId))
   )
   .get(
     "/onlyfax.json",
