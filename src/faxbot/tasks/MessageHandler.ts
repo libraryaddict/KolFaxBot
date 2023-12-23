@@ -13,10 +13,12 @@ export class MessageHandler {
   admin: FaxAdministration;
   lastKeepAlive: number = 0;
   commands: FaxCommand[] = [];
+  admins: string[];
 
   constructor(controller: ParentController) {
     this.controller = controller;
     this.admin = controller.admin;
+    this.admins = config.BOT_CONTROLLERS.split(`,`);
 
     this.registerCommands();
   }
@@ -97,15 +99,13 @@ export class MessageHandler {
       const name = message.msg.split(` `)[0].toLowerCase();
 
       const command = this.commands.find((c) => c.name() == name);
+      const admin = this.admins.includes(message.who.id);
 
-      if (
-        command != null &&
-        (!command.isRestricted() ||
-          config.BOT_CONTROLLERS.split(`,`).includes(message.who.id))
-      ) {
+      if (command != null && (!command.isRestricted() || admin)) {
         await command.execute(
           message.who,
-          message.msg.substring(name.length).trim()
+          message.msg.substring(name.length).trim(),
+          admin
         );
 
         return;

@@ -11,7 +11,7 @@ export class CommandRefresh implements FaxCommand {
   }
 
   isRestricted(): boolean {
-    return true;
+    return false;
   }
 
   name(): string {
@@ -22,10 +22,15 @@ export class CommandRefresh implements FaxCommand {
     return `'all' refreshes all clans with a whitelist, otherwise refreshes the clan the sender is currently in`;
   }
 
-  async execute(sender: KoLUser, paramters: string): Promise<void> {
-    if (paramters.toLowerCase() != "monsters") {
-      await this.refreshClans(sender, paramters);
-    } else {
+  async execute(
+    sender: KoLUser,
+    paramters: string,
+    isAdmin: boolean
+  ): Promise<void> {
+    // If not an admin, or no parameters.
+    if (isAdmin != true || paramters.length == 0) {
+      await this.refreshClan(sender);
+    } else if (paramters.toLowerCase() == "monsters") {
       const result = await tryUpdateMonsters();
 
       if (!result) {
@@ -39,47 +44,52 @@ export class CommandRefresh implements FaxCommand {
           `Monster list has been updated!`
         );
       }
+    } else if (paramters.toLowerCase() == "all") {
+      await this.refreshClans(sender);
+    } else {
+      await this.controller.client.sendPrivateMessage(
+        sender,
+        `Invalid parameter. Try monsters/all or no parameter to refresh clan`
+      );
     }
   }
 
-  async refreshClans(sender: KoLUser, paramters: string) {
-    let toCheck: KoLClan[] = [];
+  async refreshClan(sender: KoLUser) {
+    const toCheck: KoLClan[] = [];
 
-    if (paramters.length > 0) {
-      if (paramters.toLowerCase() != `all`) {
-        await this.controller.client.sendPrivateMessage(
-          sender,
-          `Unrecognized argument`
-        );
+    const clan = await this.controller.client.getClanInfo(parseInt(sender.id));
 
-        return;
-      }
-
-      toCheck = await this.controller.client.getWhitelists();
+    if (clan == null) {
       await this.controller.client.sendPrivateMessage(
         sender,
-        `Now refreshing all whitelisted clans..`
-      );
-    } else {
-      const clan = await this.controller.client.getClanInfo(
-        parseInt(sender.id)
+        `Unable to load your clan`
       );
 
-      if (clan == null) {
-        await this.controller.client.sendPrivateMessage(
-          sender,
-          `Unable to load your clan`
-        );
-
-        return;
-      }
-
-      toCheck.push(clan);
-      await this.controller.client.sendPrivateMessage(
-        sender,
-        `Now refreshing the clan '${clan.name}'`
-      );
+      return;
     }
+
+    toCheck.push(clan);
+
+    await this.controller.client.sendPrivateMessage(
+      sender,
+      `Now refreshing the clan '${clan.name}'`
+    );
+
+    await this.controller.admin.refreshClans(toCheck);
+
+    await this.controller.client.sendPrivateMessage(
+      sender,
+      `Your clan info has been refreshed`
+    );
+  }
+
+  async refreshClans(sender: KoLUser) {
+    const toCheck: KoLClan[] = await this.controller.client.getWhitelists();
+
+    await this.controller.client.sendPrivateMessage(
+      sender,
+      `Now refreshing all whitelisted clans..`
+    );
 
     await this.controller.admin.refreshClans(toCheck);
 

@@ -7,5 +7,5 @@ export interface FaxCommand {
 
   description(): string;
 
-  execute(sender: KoLUser, paramters: string): Promise<any>;
+  execute(sender: KoLUser, paramters: string, isAdmin: boolean): Promise<any>;
 }
