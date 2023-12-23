@@ -55,8 +55,6 @@ export class CommandRefresh implements FaxCommand {
   }
 
   async refreshClan(sender: KoLUser) {
-    const toCheck: KoLClan[] = [];
-
     const clan = await this.controller.client.getClanInfo(parseInt(sender.id));
 
     if (clan == null) {
@@ -68,14 +66,12 @@ export class CommandRefresh implements FaxCommand {
       return;
     }
 
-    toCheck.push(clan);
-
     await this.controller.client.sendPrivateMessage(
       sender,
       `Now refreshing the clan '${clan.name}'`
     );
 
-    await this.controller.admin.refreshClans(toCheck);
+    await this.controller.admin.refreshClans([clan]);
 
     await this.controller.client.sendPrivateMessage(
       sender,

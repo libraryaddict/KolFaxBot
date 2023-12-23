@@ -14,7 +14,7 @@ If you wish to add a monster to the fax network, give me a clan title with "Sour
 
 ---
 
-# Give me some interesting stats!<a id="stats"></a>
+# Give me some interesting (cached) stats!<a id="stats"></a>
 |Name|Count|
 |---|---|
 |Source Clans|{Source Clans}|
