@@ -302,7 +302,7 @@ export async function formatMonsterList(
             return "";
           }
 
-          return `|${match[1] ?? "N/A"}|${match[2]}|${m.command}|`;
+          return `|${match[1] ?? "N/A"}|${match[2]}|\`${m.command}\`|`;
         })
         .join("\n")
     );

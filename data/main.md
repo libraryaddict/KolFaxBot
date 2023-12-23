@@ -33,7 +33,7 @@ If you wish to add a monster to the fax network, give me a clan title with "Sour
 
 |ID|Name|Command|
 |-|-|-|
-|123|Embezzler|`[123]abcsef`
+{Monster List}
 
 ---
 
