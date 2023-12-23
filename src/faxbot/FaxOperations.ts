@@ -319,6 +319,13 @@ export class FaxOperations {
         return await this.acquireFax(faxAttempt);
       }
     } else if (fax == `No Fax Loaded` || fax == `No Fax Machine`) {
+      // Never allow a faxless clan to say its a source clan
+      if (
+        fax == `No Fax Machine` &&
+        monsterClan.clanTitle.toLowerCase().includes("source")
+      ) {
+        monsterClan.clanTitle = "";
+      }
       await setFaxMonster(monsterClan, null, null);
 
       addLog(
@@ -472,7 +479,12 @@ export class FaxOperations {
 
       const oldData = getClanDataById(newClan.id);
 
-      if (fax == `Grabbed Fax`) {
+      if (fax == "No Fax Machine") {
+        // Never allow a clan without a fax machine to say its a source clan
+        if (data.clanTitle.toLowerCase().includes("source")) {
+          data.clanTitle = "";
+        }
+      } else if (fax == `Grabbed Fax`) {
         const photo = await this.getClient().getPhotoInfo();
 
         if (photo == null || photo.name == null) {
