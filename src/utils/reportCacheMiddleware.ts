@@ -1,12 +1,21 @@
 import type { Request, Response } from "@tinyhttp/app";
 
 const cache = new Map<string, { body: string; contentType?: string }>();
+let lastCacheReset = Date.now();
 
-export const invalidateReportCache = () => void cache.clear();
+export const invalidateReportCache = () => {
+  cache.clear();
+  lastCacheReset = Date.now();
+};
 
 export const cacheReports = () => {
   return (req: Request, res: Response, next: () => void) => {
     if (req.method === "GET") {
+      // Reset cache every 12 hours
+      if (lastCacheReset + 12 * 60 * 60 * 1000 < Date.now()) {
+        invalidateReportCache();
+      }
+
       const key = req.url;
 
       if (cache.has(key)) {

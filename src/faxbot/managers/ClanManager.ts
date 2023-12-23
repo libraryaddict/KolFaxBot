@@ -1,5 +1,6 @@
 import { addLog } from "../../Settings.js";
 import type {
+  ClanStatistics,
   ClanType,
   FaxClanData,
   KoLClan,
@@ -263,6 +264,15 @@ export function isUnknownMonsterInClanData(): boolean {
   return clans.some(
     (c) => c.faxMonster != null && getMonster(c.faxMonster).length == 0
   );
+}
+
+export function getClanStatistics(): ClanStatistics {
+  const sourceClans = getFaxSourceClans().length;
+
+  return {
+    sourceClans: sourceClans,
+    otherClans: clans.length - sourceClans,
+  };
 }
 
 export function getSpecificFaxSources(): [FaxClanData, number][] {

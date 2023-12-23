@@ -7,14 +7,20 @@ import type {
   MonsterData,
 } from "../types.js";
 import { invalidateReportCache } from "../utils/reportCacheMiddleware.js";
-import { getFaxSourceClans } from "./managers/ClanManager.js";
+import { formatNumber } from "../utils/utilities.js";
 import {
+  getClanStatistics,
+  getFaxSourceClans,
+} from "./managers/ClanManager.js";
+import {
+  getFaxStatistics,
   loadMonstersFromDatabase,
   saveMonsters,
 } from "./managers/DatabaseManager.js";
 import axios from "axios";
 import { encodeXML } from "entities";
 import { readFileSync } from "fs";
+import { marked } from "marked";
 
 const monsters: MonsterData[] = [];
 
@@ -274,19 +280,19 @@ export function getMonsters() {
 
 const constSpace = `\t`;
 
-export function formatMonsterList(
+export async function formatMonsterList(
   format: "xml" | "json" | "html",
   botName: string,
   botId: string
-): string {
+): Promise<string> {
   const monsterList = createMonsterList().sort((s1, s2) =>
     s1.name.localeCompare(s2.name)
   );
 
   if (format === "html") {
-    let html = readFileSync("./data/main.html", "utf-8");
-    html = html.replaceAll("{Bot Info}", `${botName} (#${botId})`);
-    html = html.replaceAll(
+    let md = readFileSync("./data/main.md", "utf-8");
+    md = md.replaceAll("{Bot Info}", `${botName} (#${botId})`);
+    md = md.replaceAll(
       "{Monster List}",
       monsterList
         .map((m) => {
@@ -296,10 +302,27 @@ export function formatMonsterList(
             return "";
           }
 
-          return `<tr><td>${match[1] ?? "N/A"}</td><td>${match[2]}</td></tr>`;
+          return `|${match[1] ?? "N/A"}|${match[2]}|${m.command}|`;
         })
-        .join("")
+        .join("\n")
     );
+    const clanStats = getClanStatistics();
+    const faxStats = await getFaxStatistics();
+    md = md.replaceAll("{Source Clans}", formatNumber(clanStats.sourceClans));
+    md = md.replaceAll("{Other Clans}", formatNumber(clanStats.otherClans));
+    md = md.replaceAll("{Faxes Served}", formatNumber(faxStats.faxesServed));
+    md = md.replaceAll(
+      "{Top Requests}",
+      faxStats.topFaxes
+        .map((m) => {
+          return `|${m.name}|${formatNumber(m.count)}|`;
+        })
+        .join("\n")
+    );
+    const inlineHtml = await marked.parse(md, { breaks: true, async: false });
+    let html = readFileSync("./data/main.html", "utf-8");
+    html = html.replaceAll("{Bot Info}", `${botName} (#${botId})`);
+    html = html.replaceAll("{Inline Html}", inlineHtml);
 
     return html;
   }

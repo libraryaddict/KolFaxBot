@@ -174,3 +174,18 @@ export interface FaxbotDatabase {
   botdata: FaxbotDatabaseBot;
   monsterlist: FaxbotDatabaseMonsterList;
 }
+
+export interface ClanStatistics {
+  sourceClans: number;
+  otherClans: number;
+}
+
+export interface FaxRequestedCount {
+  name: string;
+  count: number;
+}
+
+export interface FaxStatistics {
+  faxesServed: number;
+  topFaxes: FaxRequestedCount[];
+}

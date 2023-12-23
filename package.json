@@ -21,12 +21,12 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.7.0",
-    "@tinyhttp/app": "^2.2.1",
+    "@tinyhttp/app": "^2.1.4",
     "async-mutex": "0.4.0 ",
     "axios": "1.4.0",
-    "discord.js": "^14.11.0",
     "entities": "^4.5.0",
     "html-entities": "^2.4.0",
+    "marked": "^11.1.0",
     "ts-dedent": "^2.2.0",
     "ts-dotenv": "^0.9.1"
   },

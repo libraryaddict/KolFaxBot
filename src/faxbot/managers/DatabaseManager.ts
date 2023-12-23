@@ -1,6 +1,8 @@
 import type {
   DepositedFax,
   FaxClanData,
+  FaxRequestedCount,
+  FaxStatistics,
   MonsterCategory,
   MonsterData,
 } from "../../types.js";
@@ -76,6 +78,31 @@ export async function loadMonstersFromDatabase(): Promise<MonsterData[]> {
   }
 
   return list;
+}
+
+export async function getFaxStatistics(): Promise<FaxStatistics> {
+  const faxesServed = await prisma.faxRecord.count();
+  const topRequests = await prisma.faxRecord.groupBy({
+    by: ["faxRequest"],
+    _count: {
+      _all: true,
+    },
+    orderBy: {
+      _count: { faxRequest: "desc" },
+    },
+    take: 10,
+  });
+
+  const topFaxes: FaxRequestedCount[] = [];
+
+  topRequests.forEach((req) => {
+    topFaxes.push({ name: req.faxRequest, count: req._count._all });
+  });
+
+  return {
+    faxesServed,
+    topFaxes,
+  };
 }
 
 export async function saveMonsters(monsters: MonsterData[]) {

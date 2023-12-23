@@ -7,8 +7,6 @@
       body {
         font-family: Arial, sans-serif;
         background-color: #f4f4f4;
-        margin: 0;
-        padding: 0;
       }
 
       header {
@@ -19,18 +17,16 @@
       }
 
       table {
-        width: 40%;
-        margin: 20px auto;
         border-collapse: collapse;
         background-color: #fff;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
       }
 
       th,
       td {
         padding: 15px;
-        text-align: left;
         border-bottom: 1px solid #ddd;
+        text-align: left;
       }
 
       th {
@@ -41,23 +37,18 @@
       tr:nth-child(even) {
         background: Gainsboro;
       }
+
+      code {
+        background: Gainsboro;
+        padding: 0.3em;
+      }
+
+      hr {
+        margin: 30px;
+      }
     </style>
   </head>
   <body>
-    <header>
-      <h1>{Bot Info}</h1>
-    </header>
-
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Monster Name</th>
-        </tr>
-      </thead>
-      <tbody>
-        {Monster List}
-      </tbody>
-    </table>
+    {Inline Html}
   </body>
 </html>
