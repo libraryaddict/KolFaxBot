@@ -19,6 +19,8 @@ If you wish to add a monster to the fax network, give me a clan title with "Sour
 |---|---|
 |Source Clans|{Source Clans}|
 |Other Clans|{Other Clans}|
+|Monsters in Source Clans|{Source Monster Count}|
+|Monsters in Other Clans|{Other Monster Count}|
 |Faxes Served|{Faxes Served}|
 
 ### Here's the most requested monsters!
@@ -33,7 +35,13 @@ If you wish to add a monster to the fax network, give me a clan title with "Sour
 
 |ID|Name|Command|
 |-|-|-|
-{Monster List}
+{Source Monsters}
+
+These remaining monsters are in clans that are not marked as a source clan.
+
+|ID|Name|Command|
+|-|-|-|
+{Other Monsters}
 
 ---
 

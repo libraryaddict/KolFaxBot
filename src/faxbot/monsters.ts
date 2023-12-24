@@ -1,6 +1,7 @@
 import { config } from "../config.js";
 import { addLog } from "../Settings.js";
 import type {
+  ClanType,
   FaxbotDatabase,
   FaxbotDatabaseMonster,
   MonsterCategory,
@@ -8,10 +9,7 @@ import type {
 } from "../types.js";
 import { invalidateReportCache } from "../utils/reportCacheMiddleware.js";
 import { formatNumber } from "../utils/utilities.js";
-import {
-  getClanStatistics,
-  getFaxSourceClans,
-} from "./managers/ClanManager.js";
+import { getClanStatistics, getFaxClans } from "./managers/ClanManager.js";
 import {
   getFaxStatistics,
   loadMonstersFromDatabase,
@@ -228,8 +226,10 @@ export function getMonster(identifier: string): MonsterData[] {
   return result;
 }
 
-export function createMonsterList(): FaxbotDatabaseMonster[] {
-  const validClans = getFaxSourceClans();
+export function createMonsterList(
+  ...clanTypes: ClanType[]
+): FaxbotDatabaseMonster[] {
+  const validClans = getFaxClans(...clanTypes);
   const monsterList: FaxbotDatabaseMonster[] = [];
 
   for (const clan of validClans) {
@@ -280,22 +280,25 @@ export function getMonsters() {
 
 const constSpace = `\t`;
 
-export async function formatMonsterList(
-  format: "xml" | "json" | "html",
+async function createHtml(
+  monsters: FaxbotDatabaseMonster[],
   botName: string,
   botId: string
-): Promise<string> {
-  const monsterList = createMonsterList().sort((s1, s2) =>
-    s1.name.localeCompare(s2.name)
-  );
+) {
+  let md = readFileSync("./data/main.md", "utf-8");
 
-  if (format === "html") {
-    let md = readFileSync("./data/main.md", "utf-8");
-    md = md.replaceAll("{Bot Info}", `${botName} (#${botId})`);
+  const generateMonsterList = (
+    keyword: string,
+    monsters: FaxbotDatabaseMonster[]
+  ) => {
     md = md.replaceAll(
-      "{Monster List}",
-      monsterList
+      keyword,
+      monsters
         .map((m) => {
+          if (m.command == "") {
+            return `||||`;
+          }
+
           const match = m.command.match(/^(?:\[(\d+)\])?(.*)$/);
 
           if (match == null) {
@@ -306,25 +309,66 @@ export async function formatMonsterList(
         })
         .join("\n")
     );
-    const clanStats = getClanStatistics();
-    const faxStats = await getFaxStatistics();
-    md = md.replaceAll("{Source Clans}", formatNumber(clanStats.sourceClans));
-    md = md.replaceAll("{Other Clans}", formatNumber(clanStats.otherClans));
-    md = md.replaceAll("{Faxes Served}", formatNumber(faxStats.faxesServed));
-    md = md.replaceAll(
-      "{Top Requests}",
-      faxStats.topFaxes
-        .map((m) => {
-          return `|${m.name}|${formatNumber(m.count)}|`;
-        })
-        .join("\n")
-    );
-    const inlineHtml = await marked.parse(md, { breaks: true, async: false });
-    let html = readFileSync("./data/main.html", "utf-8");
-    html = html.replaceAll("{Bot Info}", `${botName} (#${botId})`);
-    html = html.replaceAll("{Inline Html}", inlineHtml);
+  };
 
-    return html;
+  md = md.replaceAll("{Bot Info}", `${botName} (#${botId})`);
+
+  const clanStats = getClanStatistics();
+  const faxStats = await getFaxStatistics();
+  const unreliableMonsters = createMonsterList(`Random Clan`).filter(
+    (m) => !monsters.some((m1) => m1.name == m.name)
+  );
+
+  md = md.replaceAll(
+    "{Other Monster Count}",
+    formatNumber(unreliableMonsters.length)
+  );
+  md = md.replaceAll("{Source Clans}", formatNumber(clanStats.sourceClans));
+  md = md.replaceAll("{Other Clans}", formatNumber(clanStats.otherClans));
+  md = md.replaceAll("{Source Monster Count}", formatNumber(monsters.length));
+
+  md = md.replaceAll("{Faxes Served}", formatNumber(faxStats.faxesServed));
+  md = md.replaceAll(
+    "{Top Requests}",
+    faxStats.topFaxes
+      .map((m) => {
+        return `|${m.name}|${formatNumber(m.count)}|`;
+      })
+      .join("\n")
+  );
+
+  if (unreliableMonsters.length == 0) {
+    unreliableMonsters.push({
+      name: ``,
+      actual_name: "",
+      command: "",
+      category: "",
+    });
+  }
+
+  generateMonsterList("{Other Monsters}", unreliableMonsters);
+  generateMonsterList("{Source Monsters}", monsters);
+
+  const inlineHtml = await marked.parse(md, { breaks: true, async: false });
+
+  let html = readFileSync("./data/main.html", "utf-8");
+  html = html.replaceAll("{Bot Info}", `${botName} (#${botId})`);
+  html = html.replaceAll("{Inline Html}", inlineHtml);
+
+  return html;
+}
+
+export async function formatMonsterList(
+  format: "xml" | "json" | "html",
+  botName: string,
+  botId: string
+): Promise<string> {
+  const monsterList = createMonsterList(`Fax Source`).sort((s1, s2) =>
+    s1.name.localeCompare(s2.name)
+  );
+
+  if (format === "html") {
+    return createHtml(monsterList, botName, botId);
   }
 
   const data = {

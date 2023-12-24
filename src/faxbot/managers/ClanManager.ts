@@ -254,9 +254,9 @@ export function getRolloverFax(): FaxClanData {
   return clanTargets[0];
 }
 
-export function getFaxSourceClans(): FaxClanData[] {
+export function getFaxClans(...types: ClanType[]): FaxClanData[] {
   return clans.filter(
-    (c) => getClanType(c) == `Fax Source` && c.faxMonster != null
+    (c) => types.includes(getClanType(c)) && c.faxMonster != null
   );
 }
 
@@ -267,7 +267,7 @@ export function isUnknownMonsterInClanData(): boolean {
 }
 
 export function getClanStatistics(): ClanStatistics {
-  const sourceClans = getFaxSourceClans().length;
+  const sourceClans = getFaxClans(`Fax Source`).length;
 
   return {
     sourceClans: sourceClans,
