@@ -56,7 +56,13 @@ Sure! This isn't likely to always be the case, but I have fax clans that are alr
 
 This is done by giving it the clan title `Fax Source: M1234` where `1234` is the monster ID. As long as the monster in the fax machine doesn't match the clan title, I will add it to my "looking for" list.
 
-Anyone can do this, you just need to use a portable photocopier on a monster then place the photocopy into your clan's fax machine, then tell me `addfax run`!
+Anyone can add a clan to my list.
+
+But that's just setting up the clan, you're probably asking about getting me the monster I'm asking for!
+
+Anyone can do that, you just need to use a portable photocopier on a monster then place the photocopy into your clan's fax machine, then tell me `addfax run`!
+
+I will pop into your clan, take your fax then send it to the clan that was looking for the fax. Then thank you! (Literally thank, no physical rewards)
 
 * `addfax which` - Requests a list of monsters that I'm looking for.
 * `addfax run` - You have a fax I'm looking for? I'll come and check out your clan's fax machine to grab it!
