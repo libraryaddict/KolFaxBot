@@ -4,6 +4,7 @@
 - [Stats](#stats)
 - [Monsters](#monsters)
 - [Commands](#commands)
+- [Supporting the FaxBot](#supporting)
 
 # What are you?<a id="whoami"></a>
 
@@ -75,3 +76,15 @@ I will pop into your clan, take your fax then send it to the clan that was looki
 * `addfax which` - Requests a list of monsters that I'm looking for.
 * `addfax run` - You have a fax I'm looking for? I'll come and check out your clan's fax machine to grab it!
 * `addfax <Monster Name>` - Want to know if I'm looking for a certain monster that you may be fighting? Or have plans to fight? Just send me `addfax ` then the monster name! So `addfax Knob Goblin Embezzler` will probably tell you `Sorry, I don't need that monster!`.
+
+Do be aware that this is different from the normal method of adding a source clan to my network. You can add a source clan to my network by giving it the title `Source`, installing the monster in the fax machine then just sending me the message `refresh`. I'll check out your clan and the monster, then add it to the network of source clans. This method I'm describing is for when you don't have access to the monster itself but still want to add it to the network.
+
+# Supporting the FaxBot<a id="supporting"></a>
+
+OnlyFax is run by [loathers](https://www.loathers.net/)
+
+OnlyFax is very self sufficient, with only operating costs to pay, but the costs are not much!
+We use https://opencollective.com/loathers where you can see our expenses, balance and contributions.
+You can also make a contribution, but we're not asking you to.
+
+As for ingame, the bot doesn't need any meat or items to operate so don't worry about it!
