@@ -1,5 +1,6 @@
 import { config } from "../../config.js";
 import type { ParentController } from "../../ParentController.js";
+import { addLog } from "../../Settings.js";
 import type { KOLMessage } from "../../types.js";
 import { FaxMessages } from "../../utils/messages.js";
 import { CommandAddMonster } from "../commands/CommandAddMonster.js";
@@ -102,6 +103,9 @@ export class MessageHandler {
       const admin = this.admins.includes(message.who.id);
 
       if (command != null && (!command.isRestricted() || admin)) {
+        addLog(
+          `Now handling command '${message.msg}' for ${message.who.name} (#${message.who.id})`
+        );
         await command.execute(
           message.who,
           message.msg.substring(name.length).trim(),
