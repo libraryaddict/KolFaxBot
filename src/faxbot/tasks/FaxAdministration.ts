@@ -156,6 +156,11 @@ export class FaxAdministration {
         continue;
       }
 
+      // No delay if its the same player
+      if (fax.requester.id == newFax.player.id) {
+        return;
+      }
+
       // Its the same monster, no wait
       if (fax.fax.id == faxData.fax.id) {
         return;
