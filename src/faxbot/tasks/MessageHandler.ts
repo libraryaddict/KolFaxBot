@@ -15,6 +15,7 @@ export class MessageHandler {
   lastKeepAlive: number = 0;
   commands: FaxCommand[] = [];
   admins: string[];
+  lastHandled: Map<string, number> = new Map();
 
   constructor(controller: ParentController) {
     this.controller = controller;
@@ -96,26 +97,45 @@ export class MessageHandler {
       return;
     }
 
-    if (/^\d+$/.test(message.who.id)) {
-      const name = message.msg.split(` `)[0].toLowerCase();
-
-      const command = this.commands.find((c) => c.name() == name);
-      const admin = this.admins.includes(message.who.id);
-
-      if (command != null && (!command.isRestricted() || admin)) {
-        addLog(
-          `Now handling command '${message.msg}' for ${message.who.name} (#${message.who.id})`
-        );
-        await command.execute(
+    try {
+      if (
+        this.lastHandled.has(message.who.id) &&
+        this.lastHandled.get(message.who.id) + 6000 > Date.now()
+      ) {
+        await this.controller.client.sendPrivateMessage(
           message.who,
-          message.msg.substring(name.length).trim(),
-          admin
+          "Please wait a few seconds before trying again"
         );
 
         return;
       }
-    }
 
-    await this.getFaxRunner().handleFaxRequestWrapper(message.who, message.msg);
+      if (/^\d+$/.test(message.who.id)) {
+        const name = message.msg.split(` `)[0].toLowerCase();
+
+        const command = this.commands.find((c) => c.name() == name);
+        const admin = this.admins.includes(message.who.id);
+
+        if (command != null && (!command.isRestricted() || admin)) {
+          addLog(
+            `Now handling command '${message.msg}' for ${message.who.name} (#${message.who.id})`
+          );
+          await command.execute(
+            message.who,
+            message.msg.substring(name.length).trim(),
+            admin
+          );
+
+          return;
+        }
+      }
+
+      await this.getFaxRunner().handleFaxRequestWrapper(
+        message.who,
+        message.msg
+      );
+    } finally {
+      this.lastHandled.set(message.who.id, Date.now());
+    }
   }
 }
