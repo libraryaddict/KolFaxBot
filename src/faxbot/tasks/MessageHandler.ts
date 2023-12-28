@@ -100,7 +100,7 @@ export class MessageHandler {
     try {
       if (
         this.lastHandled.has(message.who.id) &&
-        this.lastHandled.get(message.who.id) + 6000 > Date.now()
+        this.lastHandled.get(message.who.id) + 10000 > Date.now()
       ) {
         await this.controller.client.sendPrivateMessage(
           message.who,
