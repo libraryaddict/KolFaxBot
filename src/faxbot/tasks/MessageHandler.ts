@@ -1,7 +1,8 @@
 import { config } from "../../config.js";
 import type { ParentController } from "../../ParentController.js";
 import { addLog } from "../../Settings.js";
-import type { KOLMessage } from "../../types.js";
+import type { KOLMessage, KoLUser } from "../../types.js";
+import type { KoLClient } from "../../utils/KoLClient.js";
 import { FaxMessages } from "../../utils/messages.js";
 import { CommandAddMonster } from "../commands/CommandAddMonster.js";
 import { CommandHelp } from "../commands/CommandHelp.js";
@@ -9,17 +10,93 @@ import { CommandRefresh } from "../commands/CommandRefresh.js";
 import type { FaxCommand } from "../commands/FaxCommand.js";
 import type { FaxAdministration } from "./FaxAdministration.js";
 
+type MessageHandled = {
+  player: string;
+  time: number;
+  warned: boolean;
+};
+
+class SpamHandler {
+  lastHandled: MessageHandled[] = [];
+  client: KoLClient;
+
+  constructor(client: KoLClient) {
+    this.client = client;
+  }
+
+  async shouldSkip(player: KoLUser, newMessage: boolean): Promise<boolean> {
+    // Check if they have an entry
+    let handle = this.lastHandled.find((h) => h.player == player.id);
+
+    // If they have an entry but it's no longer valid
+    if (handle != null && this.isExpired(handle)) {
+      // Set variable to null
+      handle = null;
+      // Remove from array
+      this.lastHandled.splice(this.lastHandled.indexOf(handle), 1);
+    }
+
+    // No entry, add them. Don't skip their message
+    if (handle == null) {
+      this.lastHandled.push({
+        player: player.id,
+        time: Date.now(),
+        warned: false,
+      });
+
+      // False, we will not skip them
+      return false;
+    }
+
+    // Update their last message time
+    handle.time = Date.now();
+
+    // If this is a new message, and they haven't been warned yet..
+    if (newMessage && !handle.warned) {
+      handle.warned = true;
+
+      await this.client.sendPrivateMessage(
+        player,
+        "Please don't spam me with requests!"
+      );
+    }
+
+    // Yes, skip them. They have received a warning already
+    return true;
+  }
+
+  isExpired(handle: MessageHandled): boolean {
+    return handle.time + 10_000 < Date.now();
+  }
+
+  clean() {
+    for (let i = 0; i < this.lastHandled.length; i++) {
+      const handle = this.lastHandled[i];
+
+      if (!this.isExpired(handle)) {
+        continue;
+      }
+
+      this.lastHandled.splice(i, 1);
+      // Decrement the counter as the array length has changed
+      i--;
+    }
+  }
+}
+
 export class MessageHandler {
   controller: ParentController;
   admin: FaxAdministration;
   lastKeepAlive: number = 0;
   commands: FaxCommand[] = [];
   admins: string[];
+  spamCheck: SpamHandler;
 
   constructor(controller: ParentController) {
     this.controller = controller;
     this.admin = controller.admin;
     this.admins = config.BOT_CONTROLLERS.split(`,`);
+    this.spamCheck = new SpamHandler(controller.client);
 
     this.registerCommands();
   }
@@ -46,10 +123,9 @@ export class MessageHandler {
     }
 
     const messages = await this.getClient().fetchNewMessages();
-    // Value is false if not warned, true if warned
-    const processedPlayers: Map<string, boolean> = new Map();
     let lastPolled = Date.now();
     const hadMessages = messages.length > 0;
+    this.spamCheck.clean();
 
     // While there are messages to process
     while (messages.length > 0) {
@@ -61,33 +137,21 @@ export class MessageHandler {
         continue;
       }
 
-      // If this is a private message
-      if (this.isPrivateMessage(msg)) {
-        const playerId = msg.who.id;
-
-        // If they've had a message processed in the last 3 seconds
-        if (processedPlayers.has(playerId)) {
-          // If they've not been warned yet
-          if (processedPlayers.get(playerId) == false) {
-            // Mark them as warned
-            processedPlayers.set(playerId, true);
-
-            // Warn them
-            await this.getClient().sendPrivateMessage(
-              msg.who,
-              "Please don't spam me with requests!"
-            );
-          }
-
-          // Don't process this message
-          continue;
-        } else {
-          // Don't process any more messages from them this poll
-          processedPlayers.set(playerId, false);
-        }
+      // If this is a private message and is spamming the bot
+      if (
+        this.isPrivateMessage(msg) &&
+        (await this.spamCheck.shouldSkip(msg.who, true))
+      ) {
+        continue;
       }
 
+      // Process message
       await this.processMessage(msg);
+
+      if (this.isPrivateMessage(msg)) {
+        // This is to update their last message time, so long requests are not repeated
+        await this.spamCheck.shouldSkip(msg.who, false);
+      }
 
       // If this has taken more than 2 seconds since last poll, then fetch more messages instead of a 3 second wait
       if (lastPolled + 2000 < Date.now()) {
