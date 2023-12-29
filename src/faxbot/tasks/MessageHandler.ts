@@ -66,7 +66,7 @@ class SpamHandler {
   }
 
   isExpired(handle: MessageHandled): boolean {
-    return handle.time + 10_000 < Date.now();
+    return handle.time + 9_000 < Date.now();
   }
 
   clean() {
