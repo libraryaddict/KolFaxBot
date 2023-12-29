@@ -141,9 +141,7 @@ export class KoLClient {
 
       this._lastFetchedMessages = newChatMessagesResponse[`last`];
 
-      const newWhispers: KOLMessage[] = newChatMessagesResponse[`msgs`];
-
-      return newWhispers;
+      return newChatMessagesResponse[`msgs`] as KOLMessage[];
     } catch (e) {
       addLog(
         `Errored when trying to pull messages for ` + this.getUsername(),

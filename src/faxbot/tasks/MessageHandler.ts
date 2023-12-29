@@ -15,7 +15,6 @@ export class MessageHandler {
   lastKeepAlive: number = 0;
   commands: FaxCommand[] = [];
   admins: string[];
-  lastHandled: Map<string, number> = new Map();
 
   constructor(controller: ParentController) {
     this.controller = controller;
@@ -47,29 +46,78 @@ export class MessageHandler {
     }
 
     const messages = await this.getClient().fetchNewMessages();
+    // Value is false if not warned, true if warned
+    const processedPlayers: Map<string, boolean> = new Map();
+    let lastPolled = Date.now();
+    const hadMessages = messages.length > 0;
 
-    for (const message of messages) {
-      await this.processMessage(message);
+    // While there are messages to process
+    while (messages.length > 0) {
+      // First in, first out
+      const msg = messages.shift();
+
+      // Always ignore self
+      if (msg.who != null && msg.who.id == this.getClient().getUserID()) {
+        continue;
+      }
+
+      // If this is a private message
+      if (this.isPrivateMessage(msg)) {
+        const playerId = msg.who.id;
+
+        // If they've had a message processed in the last 3 seconds
+        if (processedPlayers.has(playerId)) {
+          // If they've not been warned yet
+          if (processedPlayers.get(playerId) == false) {
+            // Mark them as warned
+            processedPlayers.set(playerId, true);
+
+            // Warn them
+            await this.getClient().sendPrivateMessage(
+              msg.who,
+              "Please don't spam me with requests!"
+            );
+          }
+
+          // Don't process this message
+          continue;
+        } else {
+          // Don't process any more messages from them this poll
+          processedPlayers.set(playerId, false);
+        }
+      }
+
+      await this.processMessage(msg);
+
+      // If this has taken more than 2 seconds since last poll, then fetch more messages instead of a 3 second wait
+      if (lastPolled + 2000 < Date.now()) {
+        // Update messages with any new messages
+        messages.push(...(await this.getClient().fetchNewMessages()));
+        lastPolled = Date.now();
+      }
     }
 
-    if (messages.length > 0) {
+    if (hadMessages) {
       return;
     }
 
     await this.admin.runAdministration();
   }
 
+  isPrivateMessage(message: KOLMessage): boolean {
+    return (
+      message.msg != null &&
+      message.who != null &&
+      message.who.id != null &&
+      message.type == `private`
+    );
+  }
+
   async processMessage(message: KOLMessage) {
     this.admin.pruneFaxes();
 
     if (this.getClient().isRolloverRisk(3)) {
-      if (
-        message.msg != null &&
-        message.who != null &&
-        message.who.id != null &&
-        message.who.id != this.getClient().getUserID() &&
-        message.type == `private`
-      ) {
+      if (this.isPrivateMessage(message)) {
         await this.getClient().sendPrivateMessage(
           message.who,
           FaxMessages.ERROR_TOO_CLOSE_ROLLOVER
@@ -97,45 +145,26 @@ export class MessageHandler {
       return;
     }
 
-    try {
-      if (
-        this.lastHandled.has(message.who.id) &&
-        this.lastHandled.get(message.who.id) + 10000 > Date.now()
-      ) {
-        await this.controller.client.sendPrivateMessage(
+    if (/^\d+$/.test(message.who.id)) {
+      const name = message.msg.split(` `)[0].toLowerCase();
+
+      const command = this.commands.find((c) => c.name() == name);
+      const admin = this.admins.includes(message.who.id);
+
+      if (command != null && (!command.isRestricted() || admin)) {
+        addLog(
+          `Now handling command '${message.msg}' for ${message.who.name} (#${message.who.id})`
+        );
+        await command.execute(
           message.who,
-          "Please wait a few seconds before trying again"
+          message.msg.substring(name.length).trim(),
+          admin
         );
 
         return;
       }
-
-      if (/^\d+$/.test(message.who.id)) {
-        const name = message.msg.split(` `)[0].toLowerCase();
-
-        const command = this.commands.find((c) => c.name() == name);
-        const admin = this.admins.includes(message.who.id);
-
-        if (command != null && (!command.isRestricted() || admin)) {
-          addLog(
-            `Now handling command '${message.msg}' for ${message.who.name} (#${message.who.id})`
-          );
-          await command.execute(
-            message.who,
-            message.msg.substring(name.length).trim(),
-            admin
-          );
-
-          return;
-        }
-      }
-
-      await this.getFaxRunner().handleFaxRequestWrapper(
-        message.who,
-        message.msg
-      );
-    } finally {
-      this.lastHandled.set(message.who.id, Date.now());
     }
+
+    await this.getFaxRunner().handleFaxRequestWrapper(message.who, message.msg);
   }
 }
