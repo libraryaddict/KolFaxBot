@@ -13,7 +13,7 @@ import type { FaxAdministration } from "./FaxAdministration.js";
 type MessageHandled = {
   player: string;
   time: number;
-  warned: boolean;
+  warned: number;
 };
 
 class SpamHandler {
@@ -41,7 +41,7 @@ class SpamHandler {
       this.lastHandled.push({
         player: player.id,
         time: Date.now(),
-        warned: false,
+        warned: 0,
       });
 
       // False, we will not skip them
@@ -51,13 +51,13 @@ class SpamHandler {
     // Update their last message time
     handle.time = Date.now();
 
-    // If this is a new message, and they haven't been warned yet..
-    if (newMessage && !handle.warned) {
-      handle.warned = true;
+    // If this is a new message, and they haven't been warned in the last 5 seconds
+    if (newMessage && handle.warned + 5_000 < Date.now()) {
+      handle.warned = Date.now();
 
       await this.client.sendPrivateMessage(
         player,
-        "Please don't spam me with requests!"
+        "Please don't spam me with requests! Wait before messaging me again."
       );
     }
 
