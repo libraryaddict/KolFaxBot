@@ -89,10 +89,11 @@ export function splitMessage(message: string, limit: number = 245): string[] {
 
     // Make sure we don't leave html entities out
     while (
-      !message.includes(
+      end > 0 &&
+      (!message.includes(
         (toSnip = decode(encodedRemainder.substring(0, end)))
       ) ||
-      !message.includes(decode(encodedRemainder.substring(end)))
+        !message.includes(decode(encodedRemainder.substring(end))))
     ) {
       end--;
     }
