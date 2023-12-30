@@ -166,13 +166,15 @@ export class FaxAdministration {
         return;
       }
 
-      const expires = (fax.completed ?? fax.requested) + 10;
-      const delay = now - expires;
+      const completed = (fax.completed ?? fax.requested) + 10;
+      const delay = completed - now;
 
       // If the last fax has already elapsed, don't worry about it
       if (delay <= 0) {
         return;
       }
+
+      console.log(`Waiting for ${delay} seconds before completing fax request`);
 
       // Wait for {delay} seconds before finishing
       await new Promise((res) => setTimeout(res, delay * 1000));
