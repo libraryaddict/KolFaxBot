@@ -103,11 +103,11 @@ export class FaxAdministration {
           name: clan.clanName,
         });
       } catch (e) {
+        addLog(`Errored while checking ${clan.clanName}: ${e}`);
+
         // As we errored, just set it to have been checked and we'll skip it
         clan.clanLastChecked = Math.round(Date.now() / 1000);
         await updateClan(clan);
-
-        addLog(`Errored while checking ${clan.clanName}: ${e}`);
       }
     }
 

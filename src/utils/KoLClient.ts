@@ -24,6 +24,7 @@ import {
 } from "./utilities.js";
 import { Mutex } from "async-mutex";
 import type { Axios, AxiosResponse } from "axios";
+import { isAxiosError } from "axios";
 import axios from "axios";
 import { readFileSync } from "fs";
 import { Agent as httpAgent } from "http";
@@ -462,7 +463,14 @@ export class KoLClient {
 
       return page.data;
     } catch (e) {
-      return null;
+      if (isAxiosError(e)) {
+        console.error(
+          `Experienced error when visiting '${url}', ${e.status}: ${e.response}`,
+          e
+        );
+      } else {
+        throw e;
+      }
     }
   }
 
