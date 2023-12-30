@@ -10,6 +10,11 @@ const username = controller.client.getUsername();
 const userId = controller.client.getUserID();
 
 const app = new App();
+console.info("Test 1");
+console.log("Test 2");
+console.error("Test 3");
+console.trace("Test 4");
+console.warn("Test 5");
 
 app
   // Since every endpoint is a report, for the moment this middleware is just set up
