@@ -28,7 +28,8 @@
     "html-entities": "^2.4.0",
     "marked": "^11.1.0",
     "ts-dedent": "^2.2.0",
-    "ts-dotenv": "^0.9.1"
+    "ts-dotenv": "^0.9.1",
+    "why-is-node-running": "^2.2.2"
   },
   "devDependencies": {
     "@types/node": "20.3.3",

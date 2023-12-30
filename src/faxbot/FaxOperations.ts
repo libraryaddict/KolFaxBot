@@ -217,11 +217,11 @@ export class FaxOperations {
       return true;
     }
 
+    addLog(`Failed to dump fax: ${result}`);
+
     if (!silent && faxAttempt != null) {
       await faxAttempt.notifyUpdate(FaxMessages.ERROR_FAILED_DUMP_FAX);
     }
-
-    addLog(`Failed to dump fax: ${result}`);
 
     return false;
   }
@@ -231,11 +231,11 @@ export class FaxOperations {
 
     if (monsterClan == null) {
       // We got to this point and we thought it was available, unfortunately it is not available
-      await faxAttempt.notifyUpdate(
-        FaxMessages.ERROR_MONSTER_REMOVED_FAX_NETWORK
-      );
       addLog(
         `Failed to grab fax, ${faxAttempt.getExpectedMonster()} is no longer in the fax network`
+      );
+      await faxAttempt.notifyUpdate(
+        FaxMessages.ERROR_MONSTER_REMOVED_FAX_NETWORK
       );
 
       return FaxOutcome.FAILED;
@@ -272,23 +272,18 @@ export class FaxOperations {
       return receivedFax;
     }
 
-    // Get photo info early, so we don't have to wait on this
-    const examinePhoto = this.getClient().getPhotoInfo();
-
     const joinedDest = await this.joinedDestClanCleanly(faxAttempt);
 
     if (joinedDest != FaxOutcome.SUCCESS) {
       return joinedDest;
     }
 
-    const photo = await examinePhoto;
+    const photo = await this.getClient().getPhotoInfo();
 
     if (photo == null || photo.name != monsterClan.faxMonster) {
       if (!(await this.dumpFax(faxAttempt))) {
         return FaxOutcome.FAILED;
       }
-
-      await setFaxMonster(monsterClan, photo == null ? null : photo.name, null);
 
       addLog(
         `Fax was not as expected, expected ${
@@ -297,6 +292,7 @@ export class FaxOperations {
           monsterClan.clanName
         } from network`
       );
+      await setFaxMonster(monsterClan, photo == null ? null : photo.name, null);
 
       return FaxOutcome.TRY_AGAIN;
     }
@@ -334,10 +330,10 @@ export class FaxOperations {
 
       return FaxOutcome.TRY_AGAIN;
     } else if (fax == `Unknown`) {
+      addLog(`Unknown fax machine state, no further information`);
       await faxAttempt.notifyUpdate(
         FaxMessages.ERROR_UNKNOWN_FAX_MACHINE_STATE
       );
-      addLog(`Unknown fax machine state, no further information`);
 
       return FaxOutcome.FAILED;
     }
@@ -352,22 +348,22 @@ export class FaxOperations {
     );
 
     if (joinTarget == `Not Whitelisted`) {
+      addLog(`Not whitelisted to clan '${faxAttempt.targetClan.name}'`);
       await faxAttempt.notifyUpdate(
         FaxMessages.ERROR_NOT_WHITELISTED_YOUR_CLAN
       );
-      addLog(`Not whitelisted to clan '${faxAttempt.targetClan.name}'`);
 
       return FaxOutcome.FAILED;
     } else if (joinTarget == `Am Clan Leader`) {
-      await faxAttempt.notifyUpdate(FaxMessages.ERROR_TRAPPED_IN_CLAN);
       addLog(`Failed to join target clan, I am clan leader and trapped`);
+      await faxAttempt.notifyUpdate(FaxMessages.ERROR_TRAPPED_IN_CLAN);
 
       return FaxOutcome.FAILED;
     } else if (joinTarget != `Joined`) {
-      await faxAttempt.notifyUpdate(FaxMessages.ERROR_JOINING_YOUR_CLAN);
       addLog(
         `Unknown error while trying to join target clan, no further information`
       );
+      await faxAttempt.notifyUpdate(FaxMessages.ERROR_JOINING_YOUR_CLAN);
 
       return FaxOutcome.FAILED;
     }
@@ -388,13 +384,13 @@ export class FaxOperations {
 
       return FaxOutcome.TRY_AGAIN;
     } else if (joinSource == `Am Clan Leader`) {
-      await faxAttempt.notifyUpdate(FaxMessages.ERROR_TRAPPED_IN_CLAN);
       addLog(`I am trapped in the clan as clan leader`);
+      await faxAttempt.notifyUpdate(FaxMessages.ERROR_TRAPPED_IN_CLAN);
 
       return FaxOutcome.FAILED;
     } else if (joinSource != `Joined`) {
-      await faxAttempt.notifyUpdate(FaxMessages.ERROR_UNABLE_JOIN_SOURCE_CLAN);
       addLog(`Unable to join clan, no further information known`);
+      await faxAttempt.notifyUpdate(FaxMessages.ERROR_UNABLE_JOIN_SOURCE_CLAN);
 
       return FaxOutcome.FAILED;
     }
@@ -408,24 +404,25 @@ export class FaxOperations {
       faxResult != `Sent Fax` && faxResult != `Have no fax to send`;
 
     if (faxResult == `Sent Fax`) {
-      await faxAttempt.notifyUpdate(FaxMessages.FAX_READY);
       addLog(
         `Completed fax request from ${faxAttempt.player.name} for monster ${faxAttempt.monster.name}`
       );
+
+      await faxAttempt.notifyUpdate(FaxMessages.FAX_READY);
 
       return FaxOutcome.SUCCESS;
     }
 
     // If we got this far, its a failure
     if (faxResult == `No Fax Machine`) {
-      await faxAttempt.notifyUpdate(FaxMessages.ERROR_NO_FAX_MACHINE);
       addLog(`Failed to send fax, they do not have a fax machine`);
+      await faxAttempt.notifyUpdate(FaxMessages.ERROR_NO_FAX_MACHINE);
     } else if (faxResult == `Illegal Clan`) {
-      await faxAttempt.notifyUpdate(FaxMessages.ERROR_ILLEGAL_CLAN);
       addLog(`Attempted to send a fax to a source fax clan`);
+      await faxAttempt.notifyUpdate(FaxMessages.ERROR_ILLEGAL_CLAN);
     } else if (faxResult == `No Clan Info`) {
-      await faxAttempt.notifyUpdate(FaxMessages.ERROR_UNKNOWN_CLAN);
       addLog(`Failed to send fax, unknown clan information`);
+      await faxAttempt.notifyUpdate(FaxMessages.ERROR_UNKNOWN_CLAN);
     }
 
     return FaxOutcome.FAILED;

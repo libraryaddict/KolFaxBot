@@ -18,6 +18,7 @@ import {
   getSecondsToNearestRollover,
   getSecondsToRollover,
 } from "./utils/utilities.js";
+import whyIsNodeRunning from "why-is-node-running";
 
 export class ParentController {
   fortune: FortuneTeller;
@@ -27,6 +28,7 @@ export class ParentController {
   lastSeenDay: number = 0;
   rollover: FaxRollover;
   messages: MessageHandler;
+  increments: number = 0;
 
   async startController() {
     await loadMonsters();
@@ -45,18 +47,48 @@ export class ParentController {
     await this.onNewDay();
   }
 
+  startFreezeMonitor() {
+    const lastIncrements: number[] = [];
+    let reported: number = -1;
+
+    setInterval(() => {
+      if (reported == this.increments) {
+        return;
+      }
+
+      lastIncrements.push(this.increments);
+
+      if (lastIncrements.length < 5) {
+        return;
+      }
+
+      // Remove the oldest
+      lastIncrements.shift();
+
+      if (lastIncrements.some((i) => i != this.increments)) {
+        return;
+      }
+
+      whyIsNodeRunning(console);
+      reported = this.increments;
+    }, 5000);
+  }
+
   async startBotHeartbeat() {
-    let increments = 0;
-    await this.onHeartbeat(increments++);
+    this.startFreezeMonitor();
+
+    const timeout = new Promise((res) => setTimeout(res, 3000000));
+    await timeout;
+    await this.onHeartbeat(this.increments++);
 
     while (true) {
-      increments = ++increments % 100;
+      this.increments = ++this.increments % 100;
 
       // Start a timeout so that we won't wait a full 3 seconds before doing the next loop
       const timeout = new Promise((res) => setTimeout(res, 3000));
 
       // Run the heartbeat
-      await this.onHeartbeat(increments);
+      await this.onHeartbeat(this.increments);
 
       // Wait for the timeout
       await timeout;

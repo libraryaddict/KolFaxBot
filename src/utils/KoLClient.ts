@@ -822,12 +822,12 @@ export class KoLClient {
 
     if (myClan != null) {
       addLog(`Now in clan ${myClan.name} to: ${goal}`);
-    }
 
-    if (myClan != null && myClan.id == clan.id) {
-      this.currentClan = myClan;
+      if (myClan.id == clan.id) {
+        this.currentClan = myClan;
 
-      return `Joined`;
+        return `Joined`;
+      }
     }
 
     addLog(`Error: Can't process clan switch: ${page}`);
