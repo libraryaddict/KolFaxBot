@@ -793,7 +793,10 @@ export class KoLClient {
       return `Am Clan Leader`;
     }
 
-    if (joinResult.includes(`You have submitted a request to join`)) {
+    if (
+      joinResult.includes("This clan is not accepting admissions right now.") ||
+      joinResult.includes(`You have submitted a request to join`)
+    ) {
       return `Not Whitelisted`;
     }
 
