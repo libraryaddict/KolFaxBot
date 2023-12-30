@@ -468,6 +468,8 @@ export class KoLClient {
           `Experienced error when visiting '${url}', ${e.status}: ${e.response}`,
           e
         );
+
+        return null;
       } else {
         throw e;
       }
