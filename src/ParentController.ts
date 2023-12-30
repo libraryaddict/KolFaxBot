@@ -77,8 +77,6 @@ export class ParentController {
   async startBotHeartbeat() {
     this.startFreezeMonitor();
 
-    const timeout = new Promise((res) => setTimeout(res, 3000000));
-    await timeout;
     await this.onHeartbeat(this.increments++);
 
     while (true) {
