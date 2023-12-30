@@ -574,6 +574,8 @@ export class KoLClient {
       return `Have no fax to send`;
     }
 
+    addLog(`Error: Can't process fax result: ${result}`);
+
     return `Unknown`;
   }
 
@@ -817,6 +819,8 @@ export class KoLClient {
 
       return `Joined`;
     }
+
+    addLog(`Error: Can't process clan switch: ${page}`);
 
     return `Unknown`;
   }
