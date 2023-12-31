@@ -1,15 +1,19 @@
 import { config } from "../config.js";
 import { addLog } from "../Settings.js";
 import type {
-  ClanType,
   FaxbotDatabase,
   FaxbotDatabaseMonster,
+  FaxClanData,
   MonsterCategory,
   MonsterData,
 } from "../types.js";
 import { invalidateReportCache } from "../utils/reportCacheMiddleware.js";
 import { formatNumber } from "../utils/utilities.js";
-import { getClanStatistics, getFaxClans } from "./managers/ClanManager.js";
+import {
+  getClanStatistics,
+  getClanType,
+  getFaxClans,
+} from "./managers/ClanManager.js";
 import {
   getFaxStatistics,
   loadMonstersFromDatabase,
@@ -227,12 +231,35 @@ export function getMonster(identifier: string): MonsterData[] {
 }
 
 export function createMonsterList(
-  ...clanTypes: ClanType[]
+  reliableClans: boolean
 ): FaxbotDatabaseMonster[] {
-  const validClans = getFaxClans(...clanTypes);
+  let clans: FaxClanData[];
+
+  if (reliableClans) {
+    // If we're wanting reliable clans in the data
+    clans = getFaxClans(`Random Clan`, `Fax Source`).filter((c) => {
+      if (getClanType(c) == "Fax Source") {
+        return true;
+      }
+
+      // Only if the monster was unchanged at least a week after it was added, will it be included
+      const added = c.faxMonsterLastChanged;
+      const checked = c.clanLastChecked;
+
+      if (added == null || checked == null) {
+        return false;
+      }
+
+      // If the monster is unchanged more than a week, then add to source clans
+      return added + 7 * 24 * 60 * 60 < checked;
+    });
+  } else {
+    clans = getFaxClans("Random Clan");
+  }
+
   const monsterList: FaxbotDatabaseMonster[] = [];
 
-  for (const clan of validClans) {
+  for (const clan of clans) {
     const monsterData =
       clan.faxMonsterId != null
         ? getMonsterById(clan.faxMonsterId)
@@ -271,6 +298,8 @@ export function createMonsterList(
     }
   }
 
+  monsterList.sort((s1, s2) => s1.name.localeCompare(s2.name));
+
   return monsterList;
 }
 
@@ -280,11 +309,7 @@ export function getMonsters() {
 
 const constSpace = `\t`;
 
-async function createHtml(
-  monsters: FaxbotDatabaseMonster[],
-  botName: string,
-  botId: string
-) {
+async function createHtml(botName: string, botId: string) {
   let md = readFileSync("./data/main.md", "utf-8");
 
   const generateMonsterList = (
@@ -315,8 +340,10 @@ async function createHtml(
 
   const clanStats = getClanStatistics();
   const faxStats = await getFaxStatistics();
-  const unreliableMonsters = createMonsterList(`Random Clan`).filter(
-    (m) => !monsters.some((m1) => m1.name == m.name)
+
+  const reliableMonsters = createMonsterList(true);
+  const unreliableMonsters = createMonsterList(false).filter(
+    (m) => !reliableMonsters.some((m1) => m1.name == m.name)
   );
 
   md = md.replaceAll(
@@ -325,7 +352,10 @@ async function createHtml(
   );
   md = md.replaceAll("{Source Clans}", formatNumber(clanStats.sourceClans));
   md = md.replaceAll("{Other Clans}", formatNumber(clanStats.otherClans));
-  md = md.replaceAll("{Source Monster Count}", formatNumber(monsters.length));
+  md = md.replaceAll(
+    "{Source Monster Count}",
+    formatNumber(reliableMonsters.length)
+  );
 
   md = md.replaceAll("{Faxes Served}", formatNumber(faxStats.faxesServed));
   md = md.replaceAll(
@@ -347,7 +377,7 @@ async function createHtml(
   }
 
   generateMonsterList("{Other Monsters}", unreliableMonsters);
-  generateMonsterList("{Source Monsters}", monsters);
+  generateMonsterList("{Source Monsters}", reliableMonsters);
 
   const inlineHtml = await marked.parse(md, { breaks: true, async: false });
 
@@ -363,20 +393,18 @@ export async function formatMonsterList(
   botName: string,
   botId: string
 ): Promise<string> {
-  const monsterList = createMonsterList(`Fax Source`).sort((s1, s2) =>
-    s1.name.localeCompare(s2.name)
-  );
-
   if (format === "html") {
-    return createHtml(monsterList, botName, botId);
+    return createHtml(botName, botId);
   }
+
+  const reliableMonsters = createMonsterList(true);
 
   const data = {
     botdata: {
       name: botName,
       playerid: botId,
     },
-    monsterlist: { monsterdata: monsterList },
+    monsterlist: { monsterdata: reliableMonsters },
   } satisfies FaxbotDatabase;
 
   if (format === "xml") {

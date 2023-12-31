@@ -4,6 +4,7 @@
 - [Stats](#stats)
 - [Monsters](#monsters)
 - [Commands](#commands)
+- [Add a monster to network](#faxsource)
 - [Supporting the FaxBot](#supporting)
 
 # What are you?<a id="whoami"></a>
@@ -60,25 +61,30 @@ Well, this is restricted to a few people which probably doesn't include you.. Bu
 #### Help!
 You're already reading the help, but you do you. Send me `help`!
 
-#### I hear you're looking for monsters?
-Sure! This isn't likely to always be the case, but I have fax clans that are already set up and just need monsters to be added.
+# I hear you're looking for monsters? How do I add a fax source?<a id="faxsource"></a>
+
+Sure! There's two methods of doing this, the first one is that you have a clan ready with a fax machine that contains a monster.
+You're also hopefully aware that the FaxBot expects that monster to always be in the fax machine.
+
+You can add a source clan to my network by adding me to your whitelist with the title containing the word `Source`, eg `Fax Source`. Then send me the message `refresh`. I'll check out your clan and the monster, then add it to the network of source clans.
+
+This differs from the `addfax` method.
+
+The `addfax` method is for when you don't have access to the monster itself but still want to add it to the network when someone has the time to do so.
+
+This isn't likely to always be the case, but I sometimes have fax clans that are already set up and just need monsters to be added.
 
 This is done by giving it the clan title `Fax Source: M1234` where `1234` is the monster ID. As long as the monster in the fax machine doesn't match the clan title, I will add it to my "looking for" list.
 
-Anyone can add a clan to my list.
+Anyone can add a clan to that list, and anyone can give me a monster I'm missing if its in that list! No need to setup a clan yourself, someone already did it for you!
 
-But that's just setting up the clan, you're probably asking about getting me the monster I'm asking for!
+To send me a monster that I'm looking for, use a `portable photocopier` on a monster to get a `Photocopied monster`, then add it to your clan fax machine. Then send me the message `addfax run`
 
-Anyone can do that, you just need to use a portable photocopier on a monster then place the photocopy into your clan's fax machine, then tell me `addfax run`!
-
-I will pop into your clan, take your fax then send it to the clan that was looking for the fax. Then thank you! (Literally thank, no physical rewards)
+I will pop into your clan, take your fax then send it to the clan that was looking for the fax. Then I'll thank you! (Literally thank, no physical rewards)
 
 * `addfax which` - Requests a list of monsters that I'm looking for.
 * `addfax run` - You have a fax I'm looking for? I'll come and check out your clan's fax machine to grab it!
 * `addfax <Monster Name>` - Want to know if I'm looking for a certain monster that you may be fighting? Or have plans to fight? Just send me `addfax ` then the monster name! So `addfax Knob Goblin Embezzler` will probably tell you `Sorry, I don't need that monster!`.
-
-Do be aware that this is different from the normal method of adding a source clan to my network. You can add a source clan to my network by giving it the title `Source`, installing the monster in the fax machine then just sending me the message `refresh`. I'll check out your clan and the monster, then add it to the network of source clans.
-The `addfax` method is for when you don't have access to the monster itself but still want to add it to the network when someone has the time to do so.
 
 # Supporting the FaxBot<a id="supporting"></a>
 
