@@ -8,7 +8,7 @@ import type {
 } from "../../types.js";
 import type { KoLClient } from "../../utils/KoLClient.js";
 import type { FaxMessages } from "../../utils/messages.js";
-import { getClanByMonster } from "../managers/ClanManager.js";
+import { getClanByMonster } from "../managers/clans.js";
 
 export enum FaxOutcome {
   FAILED,
@@ -63,6 +63,7 @@ export class PlayerFaxRequest implements FaxRequest {
   targetClan: KoLClan;
   faxAttempt: DepositedFax;
   hasFax: boolean;
+  faxSource: FaxClanData;
 
   constructor(
     client: KoLClient,
@@ -90,7 +91,19 @@ export class PlayerFaxRequest implements FaxRequest {
     this.faxAttempt.outcome = message;
   }
 
+  setFaxSource(clan: FaxClanData) {
+    this.faxSource = clan;
+
+    if (clan != null) {
+      this.faxAttempt.faxClan = clan.clanId;
+    }
+  }
+
   getFaxSource(): FaxClanData {
+    if (this.faxSource != null) {
+      return this.faxSource;
+    }
+
     const clan = getClanByMonster(this.monster);
 
     if (clan != null) {

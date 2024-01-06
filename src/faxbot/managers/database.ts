@@ -123,3 +123,5 @@ export async function saveMonsters(monsters: MonsterData[]) {
     });
   }
 }
+
+export async function getSettings() {}

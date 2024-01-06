@@ -3,6 +3,7 @@
 - [What are you?](#whoami)
 - [Stats](#stats)
 - [Monsters](#monsters)
+- [Noteworthy Faxes](#noteworthy)
 - [Commands](#commands)
 - [Add a monster to network](#faxsource)
 - [Supporting the FaxBot](#supporting)
@@ -17,48 +18,61 @@ If you wish to add a monster to the fax network, give me a clan title with "Sour
 ---
 
 # Give me some interesting (cached) stats!<a id="stats"></a>
-|Name|Count|
-|---|---|
-|Source Clans|{Source Clans}|
-|Other Clans|{Other Clans}|
-|Monsters in Source Clans|{Source Monster Count}|
-|Monsters in Other Clans|{Other Monster Count}|
-|Faxes Served|{Faxes Served}|
+
+| Name                     | Count                  |
+| ------------------------ | ---------------------- |
+| Source Clans             | {Source Clans}         |
+| Other Clans              | {Other Clans}          |
+| Monsters in Source Clans | {Source Monster Count} |
+| Monsters in Other Clans  | {Other Monster Count}  |
+| Faxes Served             | {Faxes Served}         |
 
 ### Here's the most requested monsters!
 
-|Monster|Requested|
-|---|---|
+| Monster | Requested |
+| ------- | --------- |
 {Top Requests}
 
 ---
 
 # Faxable Monsters<a id="monsters"></a>
 
-|ID|Name|Command|
-|-|-|-|
+| ID  | Name | Command |
+| --- | ---- | ------- |
 {Source Monsters}
 
 These remaining monsters are in clans that are not marked as a source clan.
 
-|ID|Name|Command|
-|-|-|-|
+| ID  | Name | Command |
+| --- | ---- | ------- |
 {Other Monsters}
+
+---
+
+# Noteworthy Faxes<a id="noteworthy"></a>
+
+| ID  | Name | Command |
+| --- | ---- | ------- |
+{Noteworthy Monsters}
 
 ---
 
 # Commands<a id="commands"></a>
 
 #### Give me a fax!
+
 Just send the monster name or ID to request a fax.
 
 #### Your clan title has changed, please check it out
+
 Send me `refresh` while in the clan.
 
 #### No no, I want you to check every clan you have access to
+
 Well, this is restricted to a few people which probably doesn't include you.. But send me `refresh all`!
 
 #### Help!
+
 You're already reading the help, but you do you. Send me `help`!
 
 # I hear you're looking for monsters? How do I add a fax source?<a id="faxsource"></a>
@@ -82,9 +96,9 @@ To send me a monster that I'm looking for, use a `portable photocopier` on a mon
 
 I will pop into your clan, take your fax then send it to the clan that was looking for the fax. Then I'll thank you! (Literally thank, no physical rewards)
 
-* `addfax which` - Requests a list of monsters that I'm looking for.
-* `addfax run` - You have a fax I'm looking for? I'll come and check out your clan's fax machine to grab it!
-* `addfax <Monster Name>` - Want to know if I'm looking for a certain monster that you may be fighting? Or have plans to fight? Just send me `addfax ` then the monster name! So `addfax Knob Goblin Embezzler` will probably tell you `Sorry, I don't need that monster!`.
+- `addfax which` - Requests a list of monsters that I'm looking for.
+- `addfax run` - You have a fax I'm looking for? I'll come and check out your clan's fax machine to grab it!
+- `addfax <Monster Name>` - Want to know if I'm looking for a certain monster that you may be fighting? Or have plans to fight? Just send me `addfax ` then the monster name! So `addfax Knob Goblin Embezzler` will probably tell you `Sorry, I don't need that monster!`.
 
 # Supporting the FaxBot<a id="supporting"></a>
 

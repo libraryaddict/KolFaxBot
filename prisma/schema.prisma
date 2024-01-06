@@ -38,3 +38,17 @@ model FaxRecord {
     completed  Int?
     outcome    String
 }
+
+model CustomSetting {
+    id      Int    @id @default(autoincrement())
+    // Player that set this setting
+    author  Int
+    // Date setting was made
+    created Int
+    // `[123]monstername` command as key
+    monster String
+    // Type of setting
+    key     String
+    // The value
+    value   String
+}

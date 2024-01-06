@@ -10,7 +10,7 @@ import {
   getUnknownClans,
   removeInaccessibleClans,
   updateClan,
-} from "../managers/ClanManager.js";
+} from "../managers/clans.js";
 
 export class FaxAdministration {
   controller: ParentController;

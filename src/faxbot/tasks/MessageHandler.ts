@@ -123,8 +123,14 @@ export class MessageHandler {
     }
 
     const messages = await this.getClient().fetchNewMessages();
+
+    if (messages.length == 0) {
+      await this.admin.runAdministration();
+
+      return;
+    }
+
     let lastPolled = Date.now();
-    const hadMessages = messages.length > 0;
     this.spamCheck.clean();
 
     // While there are messages to process
@@ -160,12 +166,6 @@ export class MessageHandler {
         lastPolled = Date.now();
       }
     }
-
-    if (hadMessages) {
-      return;
-    }
-
-    await this.admin.runAdministration();
   }
 
   isPrivateMessage(message: KOLMessage): boolean {
@@ -209,7 +209,7 @@ export class MessageHandler {
       return;
     }
 
-    if (/^\d+$/.test(message.who.id)) {
+    if (/^-?\d+$/.test(message.who.id)) {
       const name = message.msg.split(` `)[0].toLowerCase();
 
       const command = this.commands.find((c) => c.name() == name);

@@ -6,8 +6,8 @@ import type {
   DepositedFax,
   FaxClanData,
   KoLClan,
-  KOLMessage,
   KoLUser,
+  MonsterData,
 } from "../types.js";
 import { FaxMessages } from "../utils/messages.js";
 import type { FaxRequest } from "./faxrequests/FaxRequest.js";
@@ -16,15 +16,15 @@ import {
   getClanById,
   getClanByMonster,
   getClanDataById,
+  getFaxClans,
   setFaxMonster,
   updateClan,
-} from "./managers/ClanManager.js";
-import { addFaxLog } from "./managers/DatabaseManager.js";
+} from "./managers/clans.js";
+import { addFaxLog } from "./managers/database.js";
 import { getMonster, tryUpdateMonsters } from "./monsters.js";
 import type { FaxAdministration } from "./tasks/FaxAdministration.js";
 
 export class FaxOperations {
-  privateMessages: KOLMessage[] = [];
   controller: ParentController;
   administration: FaxAdministration;
 
@@ -68,49 +68,82 @@ export class FaxOperations {
     player: KoLUser,
     message: string
   ): Promise<PlayerFaxRequest> {
-    let monsters = getMonster(message);
+    const buttMatch = message.match(/([a-zA-Z0-9_ ]+'s butt$)/);
+    let monster: MonsterData;
+    let clan: FaxClanData;
 
-    if (monsters.length == 0) {
-      await this.getClient().sendPrivateMessage(
-        player,
-        FaxMessages.ERROR_MONSTER_UNKNOWN
-      );
-
-      return null;
-    }
-
-    if (monsters.length > 1) {
-      monsters = monsters.filter((m) => getClanByMonster(m) != null);
+    if (buttMatch == null) {
+      let monsters = getMonster(message);
 
       if (monsters.length == 0) {
         await this.getClient().sendPrivateMessage(
           player,
-          FaxMessages.ERROR_MULTIPLE_MONSTER_MATCHES_NOT_IN_NETWORK
-        );
-
-        return null;
-      } else if (monsters.length > 1) {
-        await this.getClient().sendPrivateMessage(
-          player,
-          FaxMessages.ERROR_MULTIPLE_MONSTER_MATCHES
+          FaxMessages.ERROR_MONSTER_UNKNOWN
         );
 
         return null;
       }
-    }
 
-    const clan = getClanByMonster(monsters[0]);
+      if (monsters.length > 1) {
+        monsters = monsters.filter((m) => getClanByMonster(m) != null);
 
-    if (clan == null) {
-      await this.getClient().sendPrivateMessage(
-        player,
-        FaxMessages.ERROR_MONSTER_NOT_IN_FAX_NETWORK.replaceAll(
-          `{monster}`,
-          monsters[0].name
-        )
+        if (monsters.length == 0) {
+          await this.getClient().sendPrivateMessage(
+            player,
+            FaxMessages.ERROR_MULTIPLE_MONSTER_MATCHES_NOT_IN_NETWORK
+          );
+
+          return null;
+        } else if (monsters.length > 1) {
+          await this.getClient().sendPrivateMessage(
+            player,
+            FaxMessages.ERROR_MULTIPLE_MONSTER_MATCHES
+          );
+
+          return null;
+        }
+      }
+
+      const clan = getClanByMonster(monsters[0]);
+
+      if (clan == null) {
+        await this.getClient().sendPrivateMessage(
+          player,
+          FaxMessages.ERROR_MONSTER_NOT_IN_FAX_NETWORK.replaceAll(
+            `{monster}`,
+            monsters[0].name
+          )
+        );
+
+        return null;
+      }
+
+      monster = monsters[0];
+    } else {
+      const clans = getFaxClans(`Fax Source`, `Random Clan`).filter(
+        (c) =>
+          c.faxMonster == `somebody else's butt` &&
+          (c.clanTitle ?? "").endsWith(`Source: ${buttMatch[1]}`)
       );
 
-      return null;
+      if (clans.length == 0) {
+        await this.getClient().sendPrivateMessage(
+          player,
+          FaxMessages.ERROR_MONSTER_UNKNOWN
+        );
+
+        return null;
+      }
+
+      if (clans.length > 1) {
+        clans.sort(
+          (c1, c2) => c1.faxMonsterLastChanged - c2.faxMonsterLastChanged
+        );
+      }
+
+      clan = clans[0];
+
+      monster = getMonster(`somebody else's butt`)[0];
     }
 
     const clanInfo = await this.getClient().getClanInfo(parseInt(player.id));
@@ -126,19 +159,20 @@ export class FaxOperations {
 
     const faxData: DepositedFax = {
       requester: player,
-      fax: monsters[0],
+      fax: monster,
       requested: Math.round(Date.now() / 1000),
       outcome: FaxMessages.ERROR_INTERNAL_ERROR,
-      request: monsters[0].name, // We could store the message itself, but inevitably someone will post their password in a format that resolves to a monster
+      request: monster.name, // We could store the message itself, but inevitably someone will post their password in a format that resolves to a monster
     };
 
     const faxAttempt = new PlayerFaxRequest(
       this.getClient(),
       player,
-      monsters[0],
+      monster,
       clanInfo,
       faxData
     );
+    faxAttempt.setFaxSource(clan);
 
     addLog(
       `Grabbing fax for ${player.name}: ${faxAttempt.getExpectedMonster()}`
@@ -153,6 +187,11 @@ export class FaxOperations {
 
       // If the acquiration didn't go perfectly, go back to step 1. Which will cancel the loop if it went badly
       if (status != FaxOutcome.SUCCESS) {
+        // Don't try again if this was for a specific clan
+        if (clan != null) {
+          break;
+        }
+
         continue;
       }
 

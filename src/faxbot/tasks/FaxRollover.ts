@@ -8,7 +8,7 @@ import {
   getRolloverFax,
   setFaxMonster,
   updateClan,
-} from "../managers/ClanManager.js";
+} from "../managers/clans.js";
 import { getMonsterById } from "../monsters.js";
 
 export class FaxRollover {

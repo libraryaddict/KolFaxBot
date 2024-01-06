@@ -4,7 +4,7 @@ import {
   getClanById,
   isUnknownMonsterInClanData,
   loadClans,
-} from "./faxbot/managers/ClanManager.js";
+} from "./faxbot/managers/clans.js";
 import { loadMonsters, tryUpdateMonsters } from "./faxbot/monsters.js";
 import { FaxAdministration } from "./faxbot/tasks/FaxAdministration.js";
 import { FaxRollover } from "./faxbot/tasks/FaxRollover.js";

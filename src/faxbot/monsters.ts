@@ -13,12 +13,12 @@ import {
   getClanStatistics,
   getClanType,
   getFaxClans,
-} from "./managers/ClanManager.js";
+} from "./managers/clans.js";
 import {
   getFaxStatistics,
   loadMonstersFromDatabase,
   saveMonsters,
-} from "./managers/DatabaseManager.js";
+} from "./managers/database.js";
 import axios from "axios";
 import { encodeXML } from "entities";
 import { readFileSync } from "fs";
@@ -272,15 +272,25 @@ export function createMonsterList(
       continue;
     }
 
+    let displayedName = monsterData.name;
+
+    if (monsterData.id == 1049) {
+      const match = (clan.clanTitle ?? "").match(/Source: (.+'s butt)$/);
+
+      if (match != null) {
+        displayedName = match[1];
+      }
+    }
+
     // Prevent dupes
-    if (monsterList.some((list) => list.actual_name == monsterData.name)) {
+    if (monsterList.some((list) => list.name == displayedName)) {
       continue;
     }
 
     const monster: FaxbotDatabaseMonster = {
-      name: monsterData.name,
+      name: displayedName,
       actual_name: monsterData.name,
-      command: `[${monsterData.id}]${monsterData.name}`,
+      command: `[${monsterData.id}]${displayedName}`,
       category: monsterData.category,
     };
 
@@ -342,7 +352,8 @@ async function createHtml(botName: string, botId: string) {
   const faxStats = await getFaxStatistics();
 
   const reliableMonsters = createMonsterList(true);
-  const unreliableMonsters = createMonsterList(false).filter(
+  const allMonsters = createMonsterList(false);
+  const unreliableMonsters = allMonsters.filter(
     (m) => !reliableMonsters.some((m1) => m1.name == m.name)
   );
 
