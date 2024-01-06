@@ -1,7 +1,6 @@
-import {
-  getClanDataById,
-  getClanType,
-} from "../faxbot/managers/ClanManager.js";
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { getClanDataById, getClanType } from "../faxbot/managers/clans.js";
 import { addLog } from "../Settings.js";
 import type {
   ClanJoinAttempt,
@@ -212,30 +211,6 @@ export class KoLClient {
     }
 
     return map;
-  }
-
-  async whois(name: string | number): Promise<KoLUser> {
-    // {"output":"<a target=mainpane href=\"showplayer.php?who=307024\"><b style=\"color: green;\">Santa (#307024)<\/b><\/a>, <font color=green>the Level 22 Disco Bandit<\/font>","msgs":[]}
-    const page = await this.visitUrl(`submitnewchat.php`, {
-      playerid: this.getUserID(),
-      j: 1,
-      graf: `/whois ${name}`,
-    });
-
-    const match = (page[`output`] as string).match(/">([^(<>)[]+) \(#(\d+)\)</);
-
-    if (match == null) {
-      addLog(
-        `Failed to lookup '${name}', ${JSON.stringify(page)}, ${page[`output`]}`
-      );
-
-      return null;
-    }
-
-    return {
-      name: match[1],
-      id: match[2],
-    };
   }
 
   async sendKmail(
@@ -494,6 +469,10 @@ export class KoLClient {
    * Can return undefined when in valhalla, can have nullsy clan
    */
   async getUserInfo(playerId: number): Promise<UserInfo | undefined> {
+    if (playerId == -1) {
+      playerId = parseInt(this.getUserID());
+    }
+
     const myClanResponse = await this.visitUrl(`showplayer.php`, {
       who: playerId,
     });
@@ -598,6 +577,10 @@ export class KoLClient {
       return null;
     }
 
+    if (match[2] == "butt") {
+      match[2] = "somebody else's butt";
+    }
+
     return {
       name: match[2],
     };
@@ -624,6 +607,12 @@ export class KoLClient {
   }
 
   async sendPrivateMessage(recipient: KoLUser, message: string): Promise<void> {
+    if (recipient.id == "-1") {
+      addLog(`\x1b[35mFaxbot > Console: \x1b[0m${message}`);
+
+      return;
+    }
+
     for (const msg of splitMessage(message)) {
       await this.useChatMacro(`/w ${recipient.id} ${msg}`);
     }
