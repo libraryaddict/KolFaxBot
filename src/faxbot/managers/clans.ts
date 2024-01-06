@@ -9,11 +9,7 @@ import type {
 } from "../../types.js";
 import { invalidateReportCache } from "../../utils/reportCacheMiddleware.js";
 import { getMonster, getMonsterById } from "../monsters.js";
-import {
-  loadClansFromDatabase,
-  removeClan,
-  saveClan,
-} from "./DatabaseManager.js";
+import { loadClansFromDatabase, removeClan, saveClan } from "./database.js";
 
 // The clans we have access to. If we lose access to a clan, we will remove them from this list
 const clans: FaxClanData[] = [];
