@@ -7,6 +7,8 @@ import { cacheReports } from "./utils/reportCacheMiddleware.js";
 import { App } from "@tinyhttp/app";
 import { createInterface } from "readline";
 
+addLog(`Running node: ${process.version}`);
+
 const controller = new ParentController();
 await controller.startController();
 
