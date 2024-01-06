@@ -1,6 +1,7 @@
+import type { WriteStream } from "fs";
 import { createWriteStream } from "fs";
 
-const log_file = createWriteStream(`fax.log`, { flags: `a` });
+let log_file: WriteStream = null;
 
 export function addLog(line: string, writeToFile: boolean = false) {
   if (line == null) {
@@ -11,6 +12,10 @@ export function addLog(line: string, writeToFile: boolean = false) {
 
   if (!writeToFile) {
     return;
+  }
+
+  if (log_file == null) {
+    log_file = createWriteStream(`fax.log`, { flags: `a` });
   }
 
   const newLine = new Date(Date.now()).toLocaleString() + `\t` + line;
