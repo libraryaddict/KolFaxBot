@@ -1,10 +1,14 @@
+import { addLog } from "../../Settings.js";
 import type {
   DepositedFax,
   FaxClanData,
   FaxRequestedCount,
   FaxStatistics,
+  KoLUser,
   MonsterCategory,
   MonsterData,
+  MonsterSetting,
+  SettingType,
 } from "../../types.js";
 import { PrismaClient } from "@prisma/client";
 
@@ -124,4 +128,93 @@ export async function saveMonsters(monsters: MonsterData[]) {
   }
 }
 
-export async function getSettings() {}
+/**
+ * Returns previous setting if success
+ */
+export async function removeSetting(
+  user: KoLUser,
+  monster: string,
+  setting: string
+): Promise<string> {
+  const existing = await prisma.customSetting.findFirst({
+    where: {
+      monster: monster,
+      key: setting,
+    },
+  });
+
+  if (existing == null) {
+    return null;
+  }
+
+  addLog(
+    `${user.name} is removing setting ${setting} which is '${existing.value}' for ${monster}`
+  );
+
+  await prisma.customSetting.delete({
+    where: {
+      id: existing.id,
+    },
+  });
+
+  return existing.value;
+}
+
+/**
+ * Returns previous setting if existed
+ */
+export async function setSetting(
+  user: KoLUser,
+  monster: string,
+  setting: string,
+  value: string
+): Promise<string | null> {
+  const existing = await prisma.customSetting.findFirst({
+    where: {
+      monster: monster,
+      key: setting,
+    },
+  });
+
+  if (existing != null) {
+    addLog(
+      `${user.name} (#${user.id}) is overwriting ${setting} for ${monster} from '${existing.value}' to '${value}'`
+    );
+
+    await prisma.customSetting.update({
+      where: { id: existing.id },
+      data: { author: parseInt(user.id), value: value },
+    });
+  } else {
+    addLog(
+      `${user.name} (#${user.id}) is setting setting ${setting} for ${monster} to '${value}'`
+    );
+
+    await prisma.customSetting.create({
+      data: {
+        author: parseInt(user.id),
+        created: Math.round(Date.now() / 1000),
+        key: setting,
+        value: value,
+        monster: monster,
+      },
+    });
+  }
+
+  return existing != null ? existing.value : null;
+}
+
+export async function getSettings(): Promise<MonsterSetting[]> {
+  const settings = await prisma.customSetting.findMany();
+  const list: MonsterSetting[] = [];
+
+  for (const setting of settings) {
+    list.push({
+      monster: setting.monster,
+      setting: setting.key as SettingType,
+      value: setting.value,
+    });
+  }
+
+  return list;
+}

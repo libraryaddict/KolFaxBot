@@ -6,6 +6,7 @@ import type {
   FaxClanData,
   MonsterCategory,
   MonsterData,
+  MonsterSetting,
 } from "../types.js";
 import { invalidateReportCache } from "../utils/reportCacheMiddleware.js";
 import { formatNumber } from "../utils/utilities.js";
@@ -16,6 +17,7 @@ import {
 } from "./managers/clans.js";
 import {
   getFaxStatistics,
+  getSettings,
   loadMonstersFromDatabase,
   saveMonsters,
 } from "./managers/database.js";
@@ -231,7 +233,8 @@ export function getMonster(identifier: string): MonsterData[] {
 }
 
 export function createMonsterList(
-  reliableClans: boolean
+  reliableClans: boolean | null, // If null, include all monsters we have access to
+  settings: MonsterSetting[] = []
 ): FaxbotDatabaseMonster[] {
   let clans: FaxClanData[];
 
@@ -253,8 +256,10 @@ export function createMonsterList(
       // If the monster is unchanged more than a week, then add to source clans
       return added + 7 * 24 * 60 * 60 < checked;
     });
-  } else {
+  } else if (reliableClans == false) {
     clans = getFaxClans("Random Clan");
+  } else {
+    clans = getFaxClans("Random Clan", "Fax Source");
   }
 
   const monsterList: FaxbotDatabaseMonster[] = [];
@@ -287,11 +292,17 @@ export function createMonsterList(
       continue;
     }
 
+    const monsterCommand = `[${monsterData.id}]${displayedName}`;
+
+    const category = settings.find(
+      (s) => s.monster == monsterCommand && s.setting == "Category"
+    );
+
     const monster: FaxbotDatabaseMonster = {
       name: displayedName,
       actual_name: monsterData.name,
-      command: `[${monsterData.id}]${displayedName}`,
-      category: monsterData.category,
+      command: monsterCommand,
+      category: category == null ? monsterData.category : category.value,
     };
 
     monsterList.push(monster);
@@ -351,8 +362,12 @@ async function createHtml(botName: string, botId: string) {
   const clanStats = getClanStatistics();
   const faxStats = await getFaxStatistics();
 
-  const reliableMonsters = createMonsterList(true);
-  const allMonsters = createMonsterList(false);
+  const settings = await getSettings();
+  const reliableMonsters = createMonsterList(true, settings);
+  const allMonsters = createMonsterList(null, settings);
+  const noteworthyMonsters = allMonsters.filter((m) =>
+    settings.some((s) => s.monster == m.command && s.setting == "Noteworthy")
+  );
   const unreliableMonsters = allMonsters.filter(
     (m) => !reliableMonsters.some((m1) => m1.name == m.name)
   );
@@ -389,6 +404,7 @@ async function createHtml(botName: string, botId: string) {
 
   generateMonsterList("{Other Monsters}", unreliableMonsters);
   generateMonsterList("{Source Monsters}", reliableMonsters);
+  generateMonsterList("{Noteworthy Monsters}", noteworthyMonsters);
 
   const inlineHtml = await marked.parse(md, { breaks: true, async: false });
 
@@ -408,7 +424,7 @@ export async function formatMonsterList(
     return createHtml(botName, botId);
   }
 
-  const reliableMonsters = createMonsterList(true);
+  const reliableMonsters = createMonsterList(true, await getSettings());
 
   const data = {
     botdata: {

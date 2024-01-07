@@ -1,6 +1,9 @@
 import type { ParentController } from "../../ParentController.js";
+import type { SettingType } from "../../types.js";
 import { type KoLUser, SettingTypes } from "../../types.js";
-import { getMonster } from "../monsters.js";
+import { invalidateReportCache } from "../../utils/reportCacheMiddleware.js";
+import { removeSetting, setSetting } from "../managers/database.js";
+import { createMonsterList } from "../monsters.js";
 import type { FaxCommand } from "./FaxCommand.js";
 
 export class CommandSetting implements FaxCommand {
@@ -22,8 +25,8 @@ export class CommandSetting implements FaxCommand {
     return "To set or remove a setting";
   }
 
-  async execute(sender: KoLUser, parameters: string, isAdmin: boolean) {
-    const match = parameters.match(/^(\S+) (\[\d+].+?) (remove|set) ?(.+)$/);
+  async execute(sender: KoLUser, parameters: string) {
+    const match = parameters.match(/^(\[\d+].+?) (\S+) (remove|set) ?(.+)?$/);
 
     if (match == null) {
       await this.controller.client.sendPrivateMessage(
@@ -36,15 +39,20 @@ export class CommandSetting implements FaxCommand {
       return;
     }
 
-    const [settingName, monster, action, value] = match;
+    let settingName = match[2];
+    const [, monster, , action, value] = match;
 
-    if (action && value == null) {
+    if (action == "set" && value == null) {
       await this.controller.client.sendPrivateMessage(sender, `Missing value!`);
 
       return;
     }
 
-    if (!SettingTypes.includes(settingName)) {
+    settingName = SettingTypes.find(
+      (t) => t.toLowerCase() == settingName.toLowerCase()
+    );
+
+    if (!SettingTypes.includes(settingName as SettingType)) {
       await this.controller.client.sendPrivateMessage(
         sender,
         `Unknown setting, use one of ${SettingTypes.join(", ")}`
@@ -53,15 +61,50 @@ export class CommandSetting implements FaxCommand {
       return;
     }
 
-    const mons = getMonster(monster);
+    const monsters = createMonsterList(null);
+    const mons = monsters.find((m) => m.command == monster);
 
-    if (mons.length != 1 || `[${mons[0].id}]${mons[0].name}` != monster) {
+    if (mons == null) {
       await this.controller.client.sendPrivateMessage(
         sender,
-        `Unable to find a monster by that name`
+        `Unable to find a monster by the name '${monster}'`
       );
 
       return;
+    }
+
+    invalidateReportCache();
+
+    if (action == "remove") {
+      const oldSetting = await removeSetting(sender, monster, settingName);
+
+      if (oldSetting == null) {
+        await this.controller.client.sendPrivateMessage(
+          sender,
+          `The setting was not in use. Nothing has changed.`
+        );
+      } else {
+        await this.controller.client.sendPrivateMessage(
+          sender,
+          `Setting ${settingName} with value '${oldSetting}' has been removed for: ${monster}`
+        );
+      }
+
+      return;
+    }
+
+    const oldSetting = await setSetting(sender, monster, settingName, value);
+
+    if (oldSetting == null) {
+      await this.controller.client.sendPrivateMessage(
+        sender,
+        `Setting ${settingName} has been set to '${value}' for: ${monster}`
+      );
+    } else {
+      await this.controller.client.sendPrivateMessage(
+        sender,
+        `Setting ${settingName} has been changed from '${oldSetting}' to '${value}' for: ${monster}`
+      );
     }
   }
 }

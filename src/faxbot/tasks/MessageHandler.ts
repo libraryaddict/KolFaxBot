@@ -7,6 +7,7 @@ import { FaxMessages } from "../../utils/messages.js";
 import { CommandAddMonster } from "../commands/CommandAddMonster.js";
 import { CommandHelp } from "../commands/CommandHelp.js";
 import { CommandRefresh } from "../commands/CommandRefresh.js";
+import { CommandSetting } from "../commands/CommandSetting.js";
 import type { FaxCommand } from "../commands/FaxCommand.js";
 import type { FaxAdministration } from "./FaxAdministration.js";
 
@@ -115,6 +116,7 @@ export class MessageHandler {
     this.commands.push(new CommandHelp(this.controller));
     this.commands.push(new CommandRefresh(this.controller));
     this.commands.push(new CommandAddMonster(this.controller));
+    this.commands.push(new CommandSetting(this.controller));
   }
 
   getFaxRunner() {

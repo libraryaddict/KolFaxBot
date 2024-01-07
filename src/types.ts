@@ -112,8 +112,14 @@ export type ClanJoinAttempt =
 
 export type ClanType = "Fax Source" | "Random Clan";
 export type MonsterCategory = "Unwishable" | "Ambiguous" | "Farming" | "Other";
-export const SettingTypes = ["Category", "Noteworthy"];
+export const SettingTypes = ["Category", "Noteworthy"] as const;
 export type SettingType = (typeof SettingTypes)[number];
+
+export interface MonsterSetting {
+  monster: string;
+  setting: SettingType;
+  value: string;
+}
 
 export interface FaxClanData {
   clanId: number;
