@@ -77,8 +77,6 @@ export class ParentController {
   async startBotHeartbeat() {
     this.startFreezeMonitor();
 
-    await this.onHeartbeat(this.increments++);
-
     while (true) {
       this.increments = ++this.increments % 100;
 

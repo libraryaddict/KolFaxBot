@@ -22,16 +22,10 @@ import {
   splitMessage,
 } from "./utilities.js";
 import { Mutex } from "async-mutex";
-import type { Axios, AxiosResponse } from "axios";
+import type { AxiosResponse } from "axios";
 import { isAxiosError } from "axios";
 import axios from "axios";
 import { readFileSync } from "fs";
-import { Agent as httpAgent } from "http";
-import { Agent as httpsAgent } from "https";
-
-axios.defaults.timeout = 30000;
-axios.defaults.httpAgent = new httpAgent({ keepAlive: true });
-axios.defaults.httpsAgent = new httpsAgent({ keepAlive: true });
 
 export class KoLClient {
   private _loginParameters: URLSearchParams;
@@ -43,7 +37,6 @@ export class KoLClient {
   private _lastFetchedMessages: string = `0`;
   private stuckInFight: boolean = false;
   private lastStatus: KoLStatus;
-  private axios: Axios;
 
   constructor(username: string, password: string) {
     this._player = { name: username, id: `` };
@@ -54,13 +47,6 @@ export class KoLClient {
     this._loginParameters.append(`password`, password);
     this._loginParameters.append(`secure`, `0`);
     this._loginParameters.append(`submitbutton`, `Log In`);
-
-    this.axios = axios.create({
-      baseURL: `https://www.kingdomofloathing.com/`,
-      timeout: 30000,
-      httpAgent: new httpAgent({ keepAlive: true }),
-      httpsAgent: new httpsAgent({ keepAlive: true }),
-    });
   }
 
   getLastStatus(): KoLStatus {
@@ -158,17 +144,20 @@ export class KoLClient {
     }
 
     try {
-      const apiResponse = await this.axios.get(`api.php`, {
-        maxRedirects: 0,
-        withCredentials: true,
-        headers: {
-          cookie: this._credentials?.sessionCookies || ``,
-        },
-        params: {
-          what: `status`,
-          for: `FaxBot`,
-        },
-      });
+      const apiResponse = await axios(
+        `https://www.kingdomofloathing.com/api.php`,
+        {
+          maxRedirects: 0,
+          withCredentials: true,
+          headers: {
+            cookie: this._credentials?.sessionCookies || ``,
+          },
+          params: {
+            what: `status`,
+            for: `FaxBot`,
+          },
+        }
+      );
 
       this._isLoggedOut = !(
         apiResponse &&
@@ -331,8 +320,8 @@ export class KoLClient {
       );
 
       try {
-        const loginResponse = await this.axios.post(
-          `login.php`,
+        const loginResponse = await axios.post(
+          `https://www.kingdomofloathing.com/login.php`,
           this._loginParameters,
           {
             data: this._loginParameters,
@@ -391,16 +380,20 @@ export class KoLClient {
       let page: AxiosResponse<any>;
 
       if (method == `POST`) {
-        page = await this.axios.post(`${url}`, params, {
-          withCredentials: true,
-          headers: {
-            cookie: this._credentials?.sessionCookies || ``,
-          },
-          data: params,
-          validateStatus: (status) => status === 200,
-        });
+        page = await axios.post(
+          `https://www.kingdomofloathing.com/${url}`,
+          params,
+          {
+            withCredentials: true,
+            headers: {
+              cookie: this._credentials?.sessionCookies || ``,
+            },
+            data: params,
+            validateStatus: (status) => status === 200,
+          }
+        );
       } else {
-        page = await this.axios.get(`${url}`, {
+        page = await axios.get(`https://www.kingdomofloathing.com/${url}`, {
           withCredentials: true,
           headers: {
             cookie: this._credentials?.sessionCookies || ``,

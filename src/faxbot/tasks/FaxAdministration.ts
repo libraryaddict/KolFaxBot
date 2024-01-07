@@ -14,7 +14,7 @@ import {
 
 export class FaxAdministration {
   controller: ParentController;
-  faxes: DepositedFax[] = []; // Automatically cleared 30m after insert
+  faxes: DepositedFax[] = []; // Automatically cleared 5m after insert
   lastAdministration: number = 0;
 
   constructor(controller: ParentController) {
@@ -128,7 +128,7 @@ export class FaxAdministration {
     // Prune all entries more than 30min old
     while (
       this.faxes.length > 0 &&
-      this.faxes[0].completed + 60 * 30 < Date.now() / 1000
+      this.faxes[0].completed + 5 * 60 < Date.now() / 1000
     ) {
       this.faxes.shift();
     }
