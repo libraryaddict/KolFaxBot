@@ -16,6 +16,8 @@ type MessageHandled = {
   warned: number;
 };
 
+type SpamState = "Pass" | "Warn & Fail" | "Fail";
+
 class SpamHandler {
   lastHandled: MessageHandled[] = [];
   client: KoLClient;
@@ -24,7 +26,18 @@ class SpamHandler {
     this.client = client;
   }
 
-  async shouldSkip(player: KoLUser, newMessage: boolean): Promise<boolean> {
+  updateTime(player: KoLUser) {
+    // Check if they have an entry
+    const handle = this.lastHandled.find((h) => h.player == player.id);
+
+    if (handle == null) {
+      return;
+    }
+
+    handle.time = Date.now();
+  }
+
+  getSpamState(player: KoLUser): SpamState {
     // Check if they have an entry
     let handle = this.lastHandled.find((h) => h.player == player.id);
 
@@ -44,25 +57,22 @@ class SpamHandler {
         warned: 0,
       });
 
-      // False, we will not skip them
-      return false;
+      return "Pass";
     }
 
     // Update their last message time
     handle.time = Date.now();
 
     // If this is a new message, and they haven't been warned in the last 5 seconds
-    if (newMessage && handle.warned + 5_000 < Date.now()) {
+    if (handle.warned + 5_000 < Date.now()) {
+      // They were warned
       handle.warned = Date.now();
 
-      await this.client.sendPrivateMessage(
-        player,
-        "Please don't spam me with requests! Wait before messaging me again."
-      );
+      return "Warn & Fail";
     }
 
-    // Yes, skip them. They have received a warning already
-    return true;
+    // They were already warned, so fail them
+    return "Fail";
   }
 
   isExpired(handle: MessageHandled): boolean {
@@ -144,19 +154,27 @@ export class MessageHandler {
       }
 
       // If this is a private message and is spamming the bot
-      if (
-        this.isPrivateMessage(msg) &&
-        (await this.spamCheck.shouldSkip(msg.who, true))
-      ) {
-        continue;
+      if (this.isPrivateMessage(msg)) {
+        const state = this.spamCheck.getSpamState(msg.who);
+
+        if (state == "Warn & Fail") {
+          await this.getClient().sendPrivateMessage(
+            msg.who,
+            "Please don't spam me with requests! Wait before messaging me again."
+          );
+        }
+
+        if (state != "Pass") {
+          continue;
+        }
       }
 
       // Process message
       await this.processMessage(msg);
 
       if (this.isPrivateMessage(msg)) {
-        // This is to update their last message time, so long requests are not repeated
-        await this.spamCheck.shouldSkip(msg.who, false);
+        // This is to update their last message time, so slower requests still warn
+        this.spamCheck.updateTime(msg.who);
       }
 
       // If this has taken more than 2 seconds since last poll, then fetch more messages instead of a 3 second wait
@@ -201,11 +219,7 @@ export class MessageHandler {
       await this.admin.processWhitelists();
 
       return;
-    } else if (
-      message.msg == null ||
-      message.who == null ||
-      message.type != `private`
-    ) {
+    } else if (!this.isPrivateMessage(message)) {
       return;
     }
 

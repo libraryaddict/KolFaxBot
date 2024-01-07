@@ -18,7 +18,6 @@ import {
   getSecondsToNearestRollover,
   getSecondsToRollover,
 } from "./utils/utilities.js";
-import whyIsNodeRunning from "why-is-node-running";
 
 export class ParentController {
   fortune: FortuneTeller;
@@ -47,36 +46,7 @@ export class ParentController {
     await this.onNewDay();
   }
 
-  startFreezeMonitor() {
-    const lastIncrements: number[] = [];
-    let reported: number = -1;
-
-    setInterval(() => {
-      if (reported == this.increments) {
-        return;
-      }
-
-      lastIncrements.push(this.increments);
-
-      if (lastIncrements.length < 5) {
-        return;
-      }
-
-      // Remove the oldest
-      lastIncrements.shift();
-
-      if (lastIncrements.some((i) => i != this.increments)) {
-        return;
-      }
-
-      whyIsNodeRunning(console);
-      reported = this.increments;
-    }, 5000);
-  }
-
   async startBotHeartbeat() {
-    this.startFreezeMonitor();
-
     while (true) {
       this.increments = ++this.increments % 100;
 

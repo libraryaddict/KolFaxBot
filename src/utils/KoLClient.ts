@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { config } from "../config.js";
 import { getClanDataById, getClanType } from "../faxbot/managers/clans.js";
 import { addLog } from "../Settings.js";
 import type {
@@ -600,7 +601,7 @@ export class KoLClient {
   }
 
   async sendPrivateMessage(recipient: KoLUser, message: string): Promise<void> {
-    if (recipient.id == "-1") {
+    if (recipient.id == "-1" || config.TESTING) {
       addLog(`\x1b[35mFaxbot > Console: \x1b[0m${message}`);
 
       return;
