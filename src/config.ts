@@ -23,5 +23,4 @@ export const schema = {
 
 export type Env = EnvType<typeof schema>;
 
-// Do not attempt to load if in testing environment
 export const config = load(schema);
