@@ -39,8 +39,8 @@ export class CommandSetting implements FaxCommand {
       return;
     }
 
-    let settingName = match[2];
-    const [, monster, , action, value] = match;
+    let [, monster, settingName] = match;
+    const [, , , action, value] = match;
 
     if (action == "set" && value == null) {
       await this.controller.client.sendPrivateMessage(sender, `Missing value!`);
@@ -62,7 +62,9 @@ export class CommandSetting implements FaxCommand {
     }
 
     const monsters = createMonsterList(null);
-    const mons = monsters.find((m) => m.command == monster);
+    const mons = monsters.find(
+      (m) => m.command.replaceAll(" ", "") == monster.replaceAll(" ", "")
+    );
 
     if (mons == null) {
       await this.controller.client.sendPrivateMessage(
@@ -72,6 +74,8 @@ export class CommandSetting implements FaxCommand {
 
       return;
     }
+
+    monster = mons.command;
 
     invalidateReportCache();
 
