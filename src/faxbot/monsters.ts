@@ -436,6 +436,10 @@ async function createHtml(botName: string, botId: string) {
     });
   }
 
+  lookingForMonsters.sort((m1, m2) =>
+    m1.actual_name.localeCompare(m2.actual_name)
+  );
+
   generateMonsterList("{Looking For Monsters}", lookingForMonsters);
 
   const inlineHtml = await marked.parse(md, { breaks: true, async: false });
