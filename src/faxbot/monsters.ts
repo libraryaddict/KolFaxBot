@@ -14,6 +14,7 @@ import {
   getClanStatistics,
   getClanType,
   getFaxClans,
+  getSpecificFaxSources,
 } from "./managers/clans.js";
 import {
   getFaxStatistics,
@@ -405,6 +406,37 @@ async function createHtml(botName: string, botId: string) {
   generateMonsterList("{Other Monsters}", unreliableMonsters);
   generateMonsterList("{Source Monsters}", reliableMonsters);
   generateMonsterList("{Noteworthy Monsters}", noteworthyMonsters);
+
+  const specificFaxSourceClans = getSpecificFaxSources().filter(
+    ([c, id]) =>
+      c.faxMonster == null ||
+      c.faxMonster != (getMonsterById(id).manualName ?? getMonsterById(id).name)
+  );
+
+  // We're sorting this by newest clans first
+  specificFaxSourceClans.sort(
+    ([c1], [c2]) => c2.clanFirstAdded - c1.clanFirstAdded
+  );
+
+  const lookingForMonsters: FaxbotDatabaseMonster[] = [];
+
+  for (const [, monsterId] of specificFaxSourceClans) {
+    const monster = getMonsterById(monsterId);
+    const cmd = `[${monster.id}]${monster.name}`;
+
+    if (lookingForMonsters.some((c) => c.command == cmd)) {
+      continue;
+    }
+
+    lookingForMonsters.push({
+      name: monster.name,
+      actual_name: monster.name,
+      command: cmd,
+      category: "N/A",
+    });
+  }
+
+  generateMonsterList("{Looking For Monsters}", lookingForMonsters);
 
   const inlineHtml = await marked.parse(md, { breaks: true, async: false });
 

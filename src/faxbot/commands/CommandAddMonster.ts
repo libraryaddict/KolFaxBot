@@ -115,14 +115,19 @@ export class CommandAddMonster implements FaxCommand {
       desired.push(name);
     }
 
-    if (desired.length > 10) {
+    if (desired.length > 3) {
       await this.controller.client.sendPrivateMessage(
         sender,
-        `Too many monsters in demand, reducing from ${desired.length} to the last 10 requested`
+        `Too many monsters in demand, visit https://onlyfax.loathers.net/#lookingfor to view the list of monsters`
       );
-      desired.splice(10);
+
+      return;
     }
 
+    await this.controller.client.sendPrivateMessage(
+      sender,
+      `You can also view this here: https://onlyfax.loathers.net/#lookingfor`
+    );
     await this.controller.client.sendPrivateMessage(
       sender,
       `I'm looking for: ${desired.join(`, `)}`

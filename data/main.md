@@ -100,6 +100,17 @@ I will pop into your clan, take your fax then send it to the clan that was looki
 - `addfax run` - You have a fax I'm looking for? I'll come and check out your clan's fax machine to grab it!
 - `addfax <Monster Name>` - Want to know if I'm looking for a certain monster that you may be fighting? Or have plans to fight? Just send me `addfax ` then the monster name! So `addfax Knob Goblin Embezzler` will probably tell you `Sorry, I don't need that monster!`.
 
+
+## Looking for these monsters<a id="lookingfor"></a>
+
+If the faxbot is looking for monsters, they will be listed below
+
+| ID  | Name | Command |
+| --- | ---- | ------- |
+{Looking For Monsters}
+
+---
+
 # Supporting the FaxBot<a id="supporting"></a>
 
 OnlyFax is run by [loathers](https://www.loathers.net/)
