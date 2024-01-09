@@ -6,6 +6,7 @@
 - [Noteworthy Faxes](#noteworthy)
 - [Commands](#commands)
 - [Add a monster to network](#faxsource)
+- [Monsters that FaxBot is looking for](#lookingfor)
 - [Supporting the FaxBot](#supporting)
 
 # What are you?<a id="whoami"></a>
@@ -101,9 +102,10 @@ I will pop into your clan, take your fax then send it to the clan that was looki
 - `addfax <Monster Name>` - Want to know if I'm looking for a certain monster that you may be fighting? Or have plans to fight? Just send me `addfax ` then the monster name! So `addfax Knob Goblin Embezzler` will probably tell you `Sorry, I don't need that monster!`.
 
 
-## Looking for these monsters<a id="lookingfor"></a>
+# Looking for these monsters<a id="lookingfor"></a>
 
-If the faxbot is looking for monsters, they will be listed below
+If the faxbot is looking for monsters, they will be listed below.
+Remember, you only need to add the fax to a fax machine, then send me `addfax run` to tell me to come over and pick up the fax to deposit it into the clan that is looking for this monster. You can acquire the fax by using a `portable photocopier` on the monster in a fight.
 
 | ID  | Name | Command |
 | --- | ---- | ------- |
