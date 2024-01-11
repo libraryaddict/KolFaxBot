@@ -292,7 +292,7 @@ export class FaxOperations {
         id: monsterClan.clanId,
         name: monsterClan.clanName,
       },
-      `grab fax`
+      `grab fax, clan title: '${monsterClan.clanTitle}'`
     );
 
     const joinedFaxClan = await this.joinedFaxClanCleanly(

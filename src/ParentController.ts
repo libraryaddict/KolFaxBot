@@ -28,6 +28,7 @@ export class ParentController {
   rollover: FaxRollover;
   messages: MessageHandler;
   increments: number = 0;
+  started: number = Date.now();
 
   async startController() {
     await loadMonsters();
@@ -44,6 +45,11 @@ export class ParentController {
     this.messages = new MessageHandler(this);
 
     await this.onNewDay();
+  }
+
+  shouldRestart(): boolean {
+    // 12 hours
+    return this.started + 12 * 60 * 60 * 1000 < Date.now();
   }
 
   async startBotHeartbeat() {
@@ -88,6 +94,19 @@ export class ParentController {
     // If new day, run new day code
     if (this.lastSeenDay != getKolDay()) {
       await this.onNewDay();
+
+      return;
+    }
+
+    if (
+      getSecondsToRollover() > 120 &&
+      getSecondsToRollover() < 180 &&
+      this.shouldRestart()
+    ) {
+      addLog(
+        `FaxBot has been up for more than 12 hours, restarting to try avoid any potential memory leak. Between 2-3 minutes until RO..`
+      );
+      process.exit(0);
 
       return;
     }
