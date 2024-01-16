@@ -81,8 +81,26 @@ export class PlayerFaxRequest implements FaxRequest {
     this.faxAttempt.clanName = clan.name;
   }
 
+  getMonsterName(): string {
+    if (
+      this.monster.name == `somebody else's butt` &&
+      this.faxSource != null &&
+      this.faxSource.clanTitle != null
+    ) {
+      const match = this.faxSource.clanTitle.match(
+        /Source: ([a-zA-Z\d_ ]+'s butt)$/
+      );
+
+      if (match != null) {
+        return match[1];
+      }
+    }
+
+    return this.monster.name;
+  }
+
   async notifyUpdate(message: FaxMessages) {
-    let msg = message.replaceAll(`{monster}`, this.monster.name);
+    let msg = message.replaceAll(`{monster}`, this.getMonsterName());
     msg = msg.replaceAll(`{operator}`, config.FAXBOT_OPERATOR);
     msg = msg.replaceAll(`{clan}`, this.faxAttempt?.clanName ?? `Unknown Clan`);
 
@@ -114,7 +132,7 @@ export class PlayerFaxRequest implements FaxRequest {
   }
 
   getExpectedMonster(): string {
-    return this.monster.name;
+    return this.getMonsterName();
   }
 
   getRequester(): string {

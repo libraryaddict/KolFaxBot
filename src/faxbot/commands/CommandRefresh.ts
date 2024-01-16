@@ -1,5 +1,6 @@
 import type { ParentController } from "../../ParentController.js";
 import type { KoLClan, KoLUser } from "../../types.js";
+import { invalidateReportCache } from "../../utils/reportCacheMiddleware.js";
 import { tryUpdateMonsters } from "../monsters.js";
 import type { FaxCommand } from "./FaxCommand.js";
 
@@ -93,5 +94,6 @@ export class CommandRefresh implements FaxCommand {
       sender,
       `${toCheck.length} clans have been refreshed.`
     );
+    invalidateReportCache();
   }
 }

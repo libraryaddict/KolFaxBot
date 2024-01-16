@@ -5,6 +5,7 @@ import { invalidateReportCache } from "../../utils/reportCacheMiddleware.js";
 import { removeSetting, setSetting } from "../managers/database.js";
 import { createMonsterList } from "../monsters.js";
 import type { FaxCommand } from "./FaxCommand.js";
+import { decode } from "html-entities";
 
 export class CommandSetting implements FaxCommand {
   controller: ParentController;
@@ -26,14 +27,16 @@ export class CommandSetting implements FaxCommand {
   }
 
   async execute(sender: KoLUser, parameters: string) {
-    const match = parameters.match(/^(\[\d+].+?) (\S+) (remove|set) ?(.+)?$/);
+    const match = decode(parameters).match(
+      /^(\[\d+].+?) (\S+) (remove|set) ?(.+)?$/
+    );
 
     if (match == null) {
       await this.controller.client.sendPrivateMessage(
         sender,
-        `Invalid parameter. Use the format "<${SettingTypes.join(
+        `Invalid parameter. Use the format "[123]MonsterXmlCommand <${SettingTypes.join(
           "/"
-        )}> [123]MonsterXmlCommand <set/remove> value?", where value is omitted if not needed`
+        )}> <set/remove> value?", where value is omitted if not needed`
       );
 
       return;
