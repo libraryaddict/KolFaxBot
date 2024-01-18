@@ -533,7 +533,7 @@ export class FaxOperations {
 
         await this.dumpFax(null);
 
-        if (getMonster(photo.name) == null) {
+        if (getMonster(photo.name).length == 0) {
           await tryUpdateMonsters();
         }
 

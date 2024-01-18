@@ -40,12 +40,16 @@ export function getClanType(clan: FaxClanData): ClanType {
   return `Random Clan`;
 }
 
-export function getClanMonsterType(clan: FaxClanData): number {
+export function getClanMonsterType(
+  clan: FaxClanData,
+  identifier: "M" | "A" = "M"
+): number {
   if (clan.clanTitle == null) {
     return null;
   }
 
-  const match = clan.clanTitle.match(/Source: M(\d+)$/i);
+  const pattern = new RegExp(`Source: ${identifier}(\\d+)$`, "i");
+  const match = clan.clanTitle.match(pattern);
 
   if (match == null) {
     return null;
@@ -102,7 +106,9 @@ export function getClanByMonster(monster: MonsterData): FaxClanData {
 
   for (const clan of sorted) {
     const faxSource = getClanType(clan) == `Fax Source`;
-    const isMonster = clan.faxMonster == (monster.manualName ?? monster.name);
+    const isMonster =
+      clan.faxMonster == (monster.manualName ?? monster.name) &&
+      (clan.faxMonsterId == null || clan.faxMonsterId == monster.id);
     let specificMonster = clan.faxMonsterId == monster.id;
 
     if (!specificMonster && !isMonster) {
@@ -199,8 +205,8 @@ export async function setFaxMonster(
   }
 
   clan.faxMonster = monsterName;
-  invalidateReportCache();
   await updateClan(clan);
+  invalidateReportCache();
 }
 
 export function getRolloverFax(): FaxClanData {
@@ -271,10 +277,12 @@ export function getClanStatistics(): ClanStatistics {
   };
 }
 
-export function getSpecificFaxSources(): [FaxClanData, number][] {
+export function getSpecificFaxSources(
+  identifier: "M" | "A" = "M"
+): [FaxClanData, number][] {
   const mapped: [FaxClanData, number][] = clans.map((c) => [
     c,
-    getClanMonsterType(c),
+    getClanMonsterType(c, identifier),
   ]);
 
   return mapped.filter(

@@ -64,7 +64,7 @@ async function loadMonstersByString(monstersFile: string) {
       continue;
     }
 
-    const manual = match[2].match(/Manuel: (?:([^ ]*)|"(.*?)"(?:$| ))/);
+    const manual = match[3].match(/Manuel: (?:([^ "]+)|"(.*?)"(?:$| ))/);
     let category: MonsterCategory = `Other`;
 
     if (line.includes(`NOWISH`)) {
@@ -74,7 +74,7 @@ async function loadMonstersByString(monstersFile: string) {
     const data: MonsterData = {
       id: parseInt(match[2]),
       name: match[1],
-      manualName: manual == null ? null : manual[1] ?? manual[2],
+      manualName: manual == null ? match[1] : manual[1] ?? manual[2],
       category: category,
     };
 
@@ -175,7 +175,7 @@ export function getMonster(identifier: string): MonsterData[] {
 
   let result = monsters.filter((m) => m.id.toString() == identifier);
 
-  if (result.length >= 1) {
+  if (result.length > 0) {
     return result;
   }
 
@@ -309,7 +309,7 @@ export function createMonsterList(
     monsterList.push(monster);
   }
 
-  if (config.TESTING) {
+  if (config.TESTING && monsterList.length < 5) {
     for (let i = 0; i < 5; i++) {
       monsterList.push({
         name: `Test Monster ${i}`,
@@ -449,6 +449,23 @@ async function createHtml(botName: string, botId: string) {
   html = html.replaceAll("{Inline Html}", inlineHtml);
 
   return html;
+}
+
+export function generateLookingForAmbiguous(): string {
+  const clans = getSpecificFaxSources("A")
+    .filter(
+      ([clan, monsterId]) =>
+        clan.faxMonster == null ||
+        clan.faxMonsterId == null ||
+        clan.faxMonsterId != monsterId
+    )
+    .map(([clan, monsterId]) => ({
+      clan: clan.clanName,
+      title: clan.clanTitle,
+      monster: monsterId,
+    }));
+
+  return JSON.stringify(clans);
 }
 
 export async function formatMonsterList(
