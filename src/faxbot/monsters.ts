@@ -463,6 +463,7 @@ export function generateLookingForAmbiguous(): string {
       clan: clan.clanName,
       title: clan.clanTitle,
       monster: monsterId,
+      name: getMonsterById(monsterId)?.name,
     }));
 
   return JSON.stringify(clans);
