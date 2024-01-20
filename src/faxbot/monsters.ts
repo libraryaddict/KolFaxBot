@@ -466,6 +466,8 @@ export function generateLookingForAmbiguous(): string {
       name: getMonsterById(monsterId)?.name,
     }));
 
+  clans.sort((c1, c2) => c1.name.localeCompare(c2.name));
+
   return JSON.stringify(clans);
 }
 
