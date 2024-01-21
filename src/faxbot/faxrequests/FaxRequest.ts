@@ -8,7 +8,6 @@ import type {
 } from "../../types.js";
 import type { KoLClient } from "../../utils/KoLClient.js";
 import type { FaxMessages } from "../../utils/messages.js";
-import { getClanByMonster } from "../managers/clans.js";
 
 export enum FaxOutcome {
   FAILED,
@@ -100,7 +99,17 @@ export class PlayerFaxRequest implements FaxRequest {
   }
 
   async notifyUpdate(message: FaxMessages) {
-    let msg = message.replaceAll(`{monster}`, this.getMonsterName());
+    let monsterName = this.getMonsterName();
+
+    if (
+      this.monster.category == "Ambiguous" &&
+      this.faxSource != null &&
+      this.faxSource.faxMonsterId != this.monster.id
+    ) {
+      monsterName += ` !! This may be another monster by the same name !!`;
+    }
+
+    let msg = message.replaceAll(`{monster}`, monsterName);
     msg = msg.replaceAll(`{operator}`, config.FAXBOT_OPERATOR);
     msg = msg.replaceAll(`{clan}`, this.faxAttempt?.clanName ?? `Unknown Clan`);
 
@@ -118,17 +127,7 @@ export class PlayerFaxRequest implements FaxRequest {
   }
 
   getFaxSource(): FaxClanData {
-    if (this.faxSource != null) {
-      return this.faxSource;
-    }
-
-    const clan = getClanByMonster(this.monster);
-
-    if (clan != null) {
-      this.faxAttempt.faxClan = clan.clanId;
-    }
-
-    return clan;
+    return this.faxSource;
   }
 
   getExpectedMonster(): string {

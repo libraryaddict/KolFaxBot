@@ -329,6 +329,14 @@ export function getMonsters() {
   return monsters;
 }
 
+export function sastifiesClan(monster: MonsterData, clan: FaxClanData) {
+  if (clan.faxMonsterId != null) {
+    return clan.faxMonsterId == monster.id;
+  }
+
+  return monster.manualName == clan.faxMonster;
+}
+
 const constSpace = `\t`;
 
 async function createHtml(botName: string, botId: string) {
@@ -407,20 +415,19 @@ async function createHtml(botName: string, botId: string) {
   generateMonsterList("{Source Monsters}", reliableMonsters);
   generateMonsterList("{Noteworthy Monsters}", noteworthyMonsters);
 
-  const specificFaxSourceClans = getSpecificFaxSources().filter(
+  // Build the list of clans that are looking for monsters
+  const lookingForClans = getSpecificFaxSources().filter(
     ([c, id]) =>
       c.faxMonster == null ||
       c.faxMonster != (getMonsterById(id).manualName ?? getMonsterById(id).name)
   );
 
   // We're sorting this by newest clans first
-  specificFaxSourceClans.sort(
-    ([c1], [c2]) => c2.clanFirstAdded - c1.clanFirstAdded
-  );
+  lookingForClans.sort(([c1], [c2]) => c2.clanFirstAdded - c1.clanFirstAdded);
 
   const lookingForMonsters: FaxbotDatabaseMonster[] = [];
 
-  for (const [, monsterId] of specificFaxSourceClans) {
+  for (const [, monsterId] of lookingForClans) {
     const monster = getMonsterById(monsterId);
     const cmd = `[${monster.id}]${monster.name}`;
 

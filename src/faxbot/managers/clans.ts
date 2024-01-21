@@ -62,23 +62,27 @@ export function getClanMonsterType(
  * Use the first clan that perfectly or vaguely matches, return early if perfect match
  */
 export function getClanByMonster(monster: MonsterData): FaxClanData {
-  let usingClan: FaxClanData = null;
-  let sMonster: boolean = false;
-  let fSource: boolean = false;
+  let currentClanFound: FaxClanData = null;
+  let currentlyExactMonster: boolean = false;
+  let currentlyFromSourceClan: boolean = false;
 
-  const isBetterPick = (specificMonster: boolean, faxSource: boolean) => {
-    if (usingClan == null) {
+  const shouldReplaceCurrentPick = (
+    specificMonster: boolean,
+    faxSource: boolean
+  ) => {
+    // Don't have a clan, replace current pick
+    if (currentClanFound == null) {
       return true;
     }
 
     // We always prioritize the specific monster if possible
-    if (sMonster != specificMonster) {
+    if (currentlyExactMonster != specificMonster) {
       // Replace if the replacement is the specific monster
       return specificMonster;
     }
 
     // If one of them is marked as a fax source and the other isn't
-    if (faxSource != fSource) {
+    if (currentlyFromSourceClan != faxSource) {
       // Replace if the replacement is the fax source
       return faxSource;
     }
@@ -88,6 +92,7 @@ export function getClanByMonster(monster: MonsterData): FaxClanData {
   };
 
   const sorted = [...clans.filter((c) => c.faxMonster != null)];
+
   // Sort so the older faxes go first as they're more reliable
   sorted.sort((c1, c2) => {
     const t1 = c1.faxMonsterLastChanged;
@@ -105,30 +110,30 @@ export function getClanByMonster(monster: MonsterData): FaxClanData {
   });
 
   for (const clan of sorted) {
-    const faxSource = getClanType(clan) == `Fax Source`;
-    const isMonster =
-      clan.faxMonster == (monster.manualName ?? monster.name) &&
-      (clan.faxMonsterId == null || clan.faxMonsterId == monster.id);
-    let specificMonster = clan.faxMonsterId == monster.id;
+    const isSourceClan = getClanType(clan) == `Fax Source`;
+    const isExactMonster = clan.faxMonsterId == monster.id;
 
-    if (!specificMonster && !isMonster) {
+    // If specific monster isn't known
+    if (clan.faxMonsterId == null) {
+      // If manuel name isn't the same, then its definitely not this clan
+      if (clan.faxMonster != monster.manualName) {
+        continue;
+      }
+    } else if (!isExactMonster) {
+      // As the monster IDs do not match, not this either
       continue;
     }
 
-    if (monster.category != `Ambiguous`) {
-      specificMonster = true;
-    }
-
-    if (!isBetterPick(specificMonster, faxSource)) {
+    if (!shouldReplaceCurrentPick(isExactMonster, isSourceClan)) {
       continue;
     }
 
-    fSource = faxSource;
-    sMonster = specificMonster;
-    usingClan = clan;
+    currentlyFromSourceClan = isSourceClan;
+    currentlyExactMonster = isExactMonster;
+    currentClanFound = clan;
   }
 
-  return usingClan;
+  return currentClanFound;
 }
 
 export function getOutdatedClans() {

@@ -182,6 +182,11 @@ export class FaxOperations {
 
     // While the situation is manageable
     while (status == FaxOutcome.TRY_AGAIN) {
+      // Only find a fax source if we are not looking in a specific clan
+      if (clan == null) {
+        faxAttempt.setFaxSource(getClanByMonster(monster));
+      }
+
       // Attempt to acquire the fax
       status = await this.acquireFax(faxAttempt);
 

@@ -18,6 +18,8 @@ type MessageHandled = {
 };
 
 type SpamState = "Pass" | "Warn & Fail" | "Fail";
+const SPAM_TIMER = 3000;
+const WARNED_TIMER = 5000;
 
 class SpamHandler {
   lastHandled: MessageHandled[] = [];
@@ -65,7 +67,7 @@ class SpamHandler {
     handle.time = Date.now();
 
     // If this is a new message, and they haven't been warned in the last 5 seconds
-    if (handle.warned + 5_000 < Date.now()) {
+    if (handle.warned + WARNED_TIMER < Date.now()) {
       // They were warned
       handle.warned = Date.now();
 
@@ -77,7 +79,7 @@ class SpamHandler {
   }
 
   isExpired(handle: MessageHandled): boolean {
-    return handle.time + 9_000 < Date.now();
+    return handle.time + SPAM_TIMER < Date.now();
   }
 
   clean() {
