@@ -45,8 +45,8 @@ export class CommandRefresh implements FaxCommand {
           `Monster list has been updated!`
         );
       }
-    } else if (paramters.toLowerCase() == "all") {
-      await this.refreshClans(sender);
+    } else if (paramters.split(" ")[0].toLowerCase() == "all") {
+      await this.refreshClans(sender, paramters.substring(3).trim());
     } else {
       await this.controller.client.sendPrivateMessage(
         sender,
@@ -80,12 +80,23 @@ export class CommandRefresh implements FaxCommand {
     );
   }
 
-  async refreshClans(sender: KoLUser) {
-    const toCheck: KoLClan[] = await this.controller.client.getWhitelists();
+  async refreshClans(sender: KoLUser, params: string) {
+    if (params.length == 0) {
+      await this.controller.client.sendPrivateMessage(
+        sender,
+        `Please provide a name filter for what clans to refresh`
+      );
+
+      return;
+    }
+
+    const toCheck: KoLClan[] = (
+      await this.controller.client.getWhitelists()
+    ).filter((c) => c.name.toLowerCase().includes(params.toLowerCase()));
 
     await this.controller.client.sendPrivateMessage(
       sender,
-      `Now refreshing all whitelisted clans..`
+      `Now refreshing ${toCheck.length} whitelisted clans..`
     );
 
     await this.controller.admin.refreshClans(toCheck);
