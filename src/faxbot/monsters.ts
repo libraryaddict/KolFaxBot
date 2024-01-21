@@ -154,6 +154,15 @@ export async function loadMonsters() {
   monsters.splice(0);
   monsters.push(...dbMonsters);
 
+  // Sort with shorter names taking priority over longer names
+  monsters.sort((m1, m2) => {
+    if (m1.name.length != m2.name.length) {
+      return m1.name.length - m2.name.length;
+    }
+
+    return m1.name.localeCompare(m2.name);
+  });
+
   addLog(`Loaded ${monsters.length} monsters`);
 }
 
@@ -171,6 +180,9 @@ export function getMonster(identifier: string): MonsterData[] {
 
   if (identifier.match(/^\[\d+\]/)) {
     identifier = identifier.match(/(\d+)/)[1];
+  } else if (identifier.match(/^\[\?+]/)) {
+    // If it starts with [??] then strip it
+    identifier = identifier.match(/\^\[\?+] *(.*)$/)[1];
   }
 
   let result = monsters.filter((m) => m.id.toString() == identifier);
@@ -263,24 +275,30 @@ export function createMonsterList(
     clans = getFaxClans("Random Clan", "Fax Source");
   }
 
+  // Sort so known fax monsters are ordered first and null ids are last
+  clans.sort((c1, c2) => (c1.faxMonsterId ?? 9999) - (c2.faxMonsterId ?? 9999));
+
   const monsterList: FaxbotDatabaseMonster[] = [];
 
   for (const clan of clans) {
-    const monsterData =
-      clan.faxMonsterId != null
-        ? getMonsterById(clan.faxMonsterId)
-        : getMonster(clan.faxMonster)[0];
+    let monsters: MonsterData[];
 
-    if (monsterData == null) {
+    if (clan.faxMonsterId != null) {
+      monsters = [getMonsterById(clan.faxMonsterId)];
+    } else {
+      monsters = getMonster(clan.faxMonster);
+    }
+
+    if (monsters.length == 0) {
       addLog(
         `Unable to find a monster '${clan.faxMonster}'. We have ${monsters.length} monsters loaded`
       );
       continue;
     }
 
-    let displayedName = monsterData.name;
+    let displayedName = monsters[0].name;
 
-    if (monsterData.id == 1049) {
+    if (monsters[0].id == 1049) {
       const match = (clan.clanTitle ?? "").match(/Source: (.+'s butt)$/);
 
       if (match != null) {
@@ -288,12 +306,14 @@ export function createMonsterList(
       }
     }
 
+    const monsterCommand = `[${
+      monsters.length == 1 ? monsters[0].id : "???"
+    }]${displayedName}`;
+
     // Prevent dupes
-    if (monsterList.some((list) => list.name == displayedName)) {
+    if (monsterList.some((list) => list.command == monsterCommand)) {
       continue;
     }
-
-    const monsterCommand = `[${monsterData.id}]${displayedName}`;
 
     const category = settings.find(
       (s) => s.monster == monsterCommand && s.setting == "Category"
@@ -301,9 +321,9 @@ export function createMonsterList(
 
     const monster: FaxbotDatabaseMonster = {
       name: displayedName,
-      actual_name: monsterData.name,
+      actual_name: monsters[0].name,
       command: monsterCommand,
-      category: category == null ? monsterData.category : category.value,
+      category: category == null ? monsters[0].category : category.value,
     };
 
     monsterList.push(monster);
@@ -354,7 +374,7 @@ async function createHtml(botName: string, botId: string) {
             return `||||`;
           }
 
-          const match = m.command.match(/^(?:\[(\d+)\])?(.*)$/);
+          const match = m.command.match(/^(?:\[([\d?]+)\])?(.*)$/);
 
           if (match == null) {
             return "";
