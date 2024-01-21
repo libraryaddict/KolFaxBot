@@ -140,7 +140,11 @@ export class FaxRollover {
 
     const monster = getMonsterById(fightingMonster);
 
-    await setFaxMonster(clan, monster.name, fightingMonster);
+    await setFaxMonster(
+      clan,
+      monster.manualName ?? monster.name,
+      fightingMonster
+    );
 
     return true;
   }

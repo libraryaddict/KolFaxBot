@@ -276,7 +276,11 @@ export class CommandAddMonster implements FaxCommand {
         continue;
       }
 
-      await setFaxMonster(faxClan, monster.name, expectedMonsterId);
+      await setFaxMonster(
+        faxClan,
+        monster.manualName ?? monster.name,
+        expectedMonsterId
+      );
       await this.controller.client.sendPrivateMessage(
         sender,
         `Updated a source clan to contain the monster ${monster.name}. Thank you!`
