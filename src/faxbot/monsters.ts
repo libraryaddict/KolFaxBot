@@ -281,26 +281,33 @@ export function createMonsterList(
   const monsterList: FaxbotDatabaseMonster[] = [];
 
   for (const clan of clans) {
-    let monsters: MonsterData[];
+    let monsterData: MonsterData;
 
     if (clan.faxMonsterId != null) {
-      monsters = [getMonsterById(clan.faxMonsterId)];
+      monsterData = getMonsterById(clan.faxMonsterId);
     } else {
-      monsters = getMonsters().filter(
+      const monsters = getMonsters().filter(
         (m) => (m.manualName ?? m.name) == clan.faxMonster
       );
+
+      // Only display if the monster ID is not in question
+      if (monsters.length == 1) {
+        monsterData = monsters[0];
+      } else {
+        continue;
+      }
     }
 
-    if (monsters.length == 0) {
+    if (monsterData == null) {
       addLog(
         `Unable to find a monster '${clan.faxMonster}'. We have ${monsters.length} monsters loaded`
       );
       continue;
     }
 
-    let displayedName = monsters[0].name;
+    let displayedName = monsterData.name;
 
-    if (monsters[0].id == 1049) {
+    if (monsterData.id == 1049) {
       const match = (clan.clanTitle ?? "").match(/Source: (.+'s butt)$/);
 
       if (match != null) {
@@ -308,9 +315,7 @@ export function createMonsterList(
       }
     }
 
-    const monsterCommand = `[${
-      monsters.length == 1 ? monsters[0].id : "???"
-    }]${displayedName}`;
+    const monsterCommand = `[${monsterData.id}]${displayedName}`;
 
     // Prevent dupes
     if (monsterList.some((list) => list.command == monsterCommand)) {
@@ -323,9 +328,9 @@ export function createMonsterList(
 
     const monster: FaxbotDatabaseMonster = {
       name: displayedName,
-      actual_name: monsters[0].name,
+      actual_name: monsterData.name,
       command: monsterCommand,
-      category: category == null ? monsters[0].category : category.value,
+      category: category == null ? monsterData.category : category.value,
     };
 
     monsterList.push(monster);
