@@ -532,12 +532,19 @@ export class FaxOperations {
         }
 
         await this.dumpFax(null);
+        const monsters = getMonster(photo.name);
 
-        if (getMonster(photo.name).length == 0) {
+        if (monsters.length == 0) {
           await tryUpdateMonsters();
         }
 
-        await setFaxMonster(data, photo.name, null);
+        let monsterId = oldData.faxMonsterId;
+
+        if (monsterId != null && !monsters.some((m) => m.id == monsterId)) {
+          monsterId = null;
+        }
+
+        await setFaxMonster(data, photo.name, monsterId);
       } else if (oldData != null && oldData.faxMonster != null) {
         // Something went wrong, lets not get into it
         return;

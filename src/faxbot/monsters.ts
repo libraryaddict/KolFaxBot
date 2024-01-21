@@ -457,7 +457,9 @@ export function generateLookingForAmbiguous(): string {
       ([clan, monsterId]) =>
         clan.faxMonster == null ||
         clan.faxMonsterId == null ||
-        clan.faxMonsterId != monsterId
+        clan.faxMonsterId != monsterId ||
+        getMonsterById(clan.faxMonsterId)?.manualName !=
+          getMonsterById(monsterId)?.manualName
     )
     .map(([clan, monsterId]) => ({
       clan: clan.clanName,

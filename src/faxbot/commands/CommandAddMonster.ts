@@ -219,11 +219,13 @@ export class CommandAddMonster implements FaxCommand {
     const clans = getSpecificFaxSources(
       expectedMonsterId != null ? "A" : null
     ).filter(
-      ([c, id]) =>
-        id == monster.id &&
-        (expectedMonsterId == null
-          ? c.faxMonster != monster.manualName ?? monster.name
-          : c.faxMonsterId != expectedMonsterId)
+      ([clan, id]) =>
+        (expectedMonsterId == null || expectedMonsterId == id) &&
+        (clan.faxMonster == null ||
+          clan.faxMonsterId == null ||
+          clan.faxMonsterId != id ||
+          getMonsterById(clan.faxMonsterId)?.manualName !=
+            getMonsterById(id)?.manualName)
     );
 
     if (clans.length == 0) {
