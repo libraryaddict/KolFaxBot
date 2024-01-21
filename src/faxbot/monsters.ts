@@ -286,9 +286,13 @@ export function createMonsterList(
     if (clan.faxMonsterId != null) {
       monsterData = getMonsterById(clan.faxMonsterId);
     } else {
-      const monsters = getMonsters().filter(
+      let monsters = getMonsters().filter(
         (m) => (m.manualName ?? m.name) == clan.faxMonster
       );
+
+      if (monsters.length == 0) {
+        monsters = getMonster(clan.faxMonster);
+      }
 
       // Only display if the monster ID is not in question
       if (monsters.length == 1) {
@@ -354,14 +358,6 @@ export function createMonsterList(
 
 export function getMonsters() {
   return monsters;
-}
-
-export function sastifiesClan(monster: MonsterData, clan: FaxClanData) {
-  if (clan.faxMonsterId != null) {
-    return clan.faxMonsterId == monster.id;
-  }
-
-  return monster.manualName == clan.faxMonster;
 }
 
 const constSpace = `\t`;
