@@ -182,7 +182,7 @@ export function getMonster(identifier: string): MonsterData[] {
     identifier = identifier.match(/(\d+)/)[1];
   } else if (identifier.match(/^\[\?+]/)) {
     // If it starts with [??] then strip it
-    identifier = identifier.match(/\^\[\?+] *(.*)$/)[1];
+    identifier = identifier.match(/^\[\?+] *(.*)$/)[1];
   }
 
   let result = monsters.filter((m) => m.id.toString() == identifier);
@@ -286,7 +286,9 @@ export function createMonsterList(
     if (clan.faxMonsterId != null) {
       monsters = [getMonsterById(clan.faxMonsterId)];
     } else {
-      monsters = getMonster(clan.faxMonster);
+      monsters = getMonsters().filter(
+        (m) => (m.manualName ?? m.name) == clan.faxMonster
+      );
     }
 
     if (monsters.length == 0) {
