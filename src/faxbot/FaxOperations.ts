@@ -543,7 +543,7 @@ export class FaxOperations {
           await tryUpdateMonsters();
         }
 
-        let monsterId = oldData.faxMonsterId;
+        let monsterId = oldData?.faxMonsterId;
 
         if (monsterId != null && !monsters.some((m) => m.id == monsterId)) {
           monsterId = null;
