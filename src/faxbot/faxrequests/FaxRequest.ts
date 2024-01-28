@@ -101,7 +101,9 @@ export class PlayerFaxRequest implements FaxRequest {
   async notifyUpdate(message: FaxMessages) {
     let monsterName = this.getMonsterName();
 
+    // If the monster wasn't named especially (Prevent a butt from being warned as another possible monster)
     if (
+      monsterName != this.monster.name &&
       this.monster.category == "Ambiguous" &&
       this.faxSource != null &&
       this.faxSource.faxMonsterId != this.monster.id
