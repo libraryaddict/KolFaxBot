@@ -81,21 +81,27 @@ export class PlayerFaxRequest implements FaxRequest {
   }
 
   getMonsterName(): string {
-    if (
-      this.monster.name == `somebody else's butt` &&
-      this.faxSource != null &&
-      this.faxSource.clanTitle != null
-    ) {
-      const match = this.faxSource.clanTitle.match(
-        /Source: ([a-zA-Z\d_ ]+'s butt)$/
-      );
+    return this.getSpecialName() ?? this.monster.name;
+  }
 
-      if (match != null) {
-        return match[1];
-      }
+  getSpecialName() {
+    if (
+      this.monster.name != `somebody else's butt` ||
+      this.faxSource == null ||
+      this.faxSource.clanTitle == null
+    ) {
+      return null;
     }
 
-    return this.monster.name;
+    const match = this.faxSource.clanTitle.match(
+      /Source: ([a-zA-Z\d_ ]+'s butt)$/
+    );
+
+    if (match == null) {
+      return null;
+    }
+
+    return match[1];
   }
 
   async notifyUpdate(message: FaxMessages) {
@@ -103,7 +109,7 @@ export class PlayerFaxRequest implements FaxRequest {
 
     // If the monster wasn't named especially (Prevent a butt from being warned as another possible monster)
     if (
-      monsterName != this.monster.name &&
+      this.getSpecialName() == null &&
       this.monster.category == "Ambiguous" &&
       this.faxSource != null &&
       this.faxSource.faxMonsterId != this.monster.id
