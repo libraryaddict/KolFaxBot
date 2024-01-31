@@ -217,7 +217,7 @@ export class CommandAddMonster implements FaxCommand {
 
     // Filter to only the clans that are empty or mismatch in monster
     const clans = getSpecificFaxSources(
-      expectedMonsterId != null ? "A" : null
+      expectedMonsterId != null ? "A" : "M"
     ).filter(
       ([clan, id]) =>
         (expectedMonsterId == null || expectedMonsterId == id) &&
