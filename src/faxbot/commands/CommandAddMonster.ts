@@ -220,7 +220,8 @@ export class CommandAddMonster implements FaxCommand {
       expectedMonsterId != null ? "A" : "M"
     ).filter(
       ([clan, id]) =>
-        (expectedMonsterId == null || expectedMonsterId == id) &&
+        ((expectedMonsterId == null && monster.id == id) ||
+          expectedMonsterId == id) &&
         (clan.faxMonster == null ||
           clan.faxMonsterId == null ||
           clan.faxMonsterId != id ||
