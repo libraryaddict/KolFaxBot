@@ -404,6 +404,14 @@ export class KoLClient {
         });
       }
 
+      if (page.request && page.request.res && page.request.res.responseUrl) {
+        const currentUrl = page.request.res.responseUrl as string;
+
+        this._isLoggedOut = currentUrl.startsWith(
+          "https://www.kingdomofloathing.com/login.php"
+        );
+      }
+
       if (page.headers[`set-cookie`] && this._credentials != null) {
         const cookies: any = {};
 
