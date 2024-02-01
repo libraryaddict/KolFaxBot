@@ -407,9 +407,12 @@ export class KoLClient {
       if (page.request && page.request.res && page.request.res.responseUrl) {
         const currentUrl = page.request.res.responseUrl as string;
 
-        this._isLoggedOut = currentUrl.startsWith(
-          "https://www.kingdomofloathing.com/login.php"
-        );
+        if (
+          currentUrl.startsWith("https://www.kingdomofloathing.com/login.php")
+        ) {
+          addLog(`We appear to be logged out..`);
+          this.setLoggedOut();
+        }
       }
 
       if (page.headers[`set-cookie`] && this._credentials != null) {
