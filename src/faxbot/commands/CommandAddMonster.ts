@@ -241,42 +241,44 @@ export class CommandAddMonster implements FaxCommand {
     for (let i = 0; i < clans.length; i++) {
       const faxClan = clans[i][0];
 
-      const joinResult = await this.controller.client.joinClanForcibly(
-        { id: faxClan.clanId, name: faxClan.clanName },
-        `Add Monster to Fax`
-      );
-
-      if (joinResult != `Joined`) {
-        await this.controller.client.sendPrivateMessage(
-          sender,
-          `Failed to join the clan ${faxClan.clanName}`
-        );
-        continue;
-      }
-
-      fax = await this.controller.client.useFaxMachine(`sendfax`, true);
-
-      if (fax != `Sent Fax`) {
-        await this.controller.client.sendPrivateMessage(
-          sender,
-          `Error while trying to deposit fax in ${faxClan.clanName}: ${fax}`
+      if (faxClan.clanId != clan.id) {
+        const joinResult = await this.controller.client.joinClanForcibly(
+          { id: faxClan.clanId, name: faxClan.clanName },
+          `Add Monster to Fax`
         );
 
-        // If it isn't a harmless error, never continue
-        if (fax != `No Fax Machine`) {
-          const remaining = clans.length - (i + 1);
-
-          if (remaining > 0) {
-            await this.controller.client.sendPrivateMessage(
-              sender,
-              `Skipped remaining ${remaining} clans`
-            );
-          }
-
-          return;
+        if (joinResult != `Joined`) {
+          await this.controller.client.sendPrivateMessage(
+            sender,
+            `Failed to join the clan ${faxClan.clanName}`
+          );
+          continue;
         }
 
-        continue;
+        fax = await this.controller.client.useFaxMachine(`sendfax`, true);
+
+        if (fax != `Sent Fax`) {
+          await this.controller.client.sendPrivateMessage(
+            sender,
+            `Error while trying to deposit fax in ${faxClan.clanName}: ${fax}`
+          );
+
+          // If it isn't a harmless error, never continue
+          if (fax != `No Fax Machine`) {
+            const remaining = clans.length - (i + 1);
+
+            if (remaining > 0) {
+              await this.controller.client.sendPrivateMessage(
+                sender,
+                `Skipped remaining ${remaining} clans`
+              );
+            }
+
+            return;
+          }
+
+          continue;
+        }
       }
 
       await setFaxMonster(
