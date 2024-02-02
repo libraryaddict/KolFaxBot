@@ -21,7 +21,7 @@ import {
   updateClan,
 } from "./managers/clans.js";
 import { addFaxLog } from "./managers/database.js";
-import { getMonster, tryUpdateMonsters } from "./monsters.js";
+import { getMonster, getMonsters, tryUpdateMonsters } from "./monsters.js";
 import type { FaxAdministration } from "./tasks/FaxAdministration.js";
 
 export class FaxOperations {
@@ -537,7 +537,9 @@ export class FaxOperations {
         }
 
         await this.dumpFax(null);
-        const monsters = getMonster(photo.name);
+        const monsters = getMonsters().filter(
+          (m) => m.manualName == photo.name
+        );
 
         if (monsters.length == 0) {
           await tryUpdateMonsters();
