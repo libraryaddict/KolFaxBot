@@ -92,6 +92,14 @@ export class KoLClient {
     return this._player?.id;
   }
 
+  async getKmails(): Promise<string> {
+    if (this.isLoggedOut() || this.isRolloverRisk(15)) {
+      return "{}";
+    }
+
+    return await this.visitUrl(`api.php`, { what: "kmail", for: "Faxbot" });
+  }
+
   async relog() {
     this.setLoggedOut();
 
