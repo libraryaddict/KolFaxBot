@@ -16,6 +16,9 @@ I am easy to get started. Just send me a monster name which is in my fax network
 Be aware though that you need a VIP invitation to access the fax machine, and I will need a whitelist to your clan.
 If you wish to add a monster to the fax network, give me a clan title with "Source" or "Fax Source" in the name.
 
+I also operate as a Fortune Teller bot in {Default Clan}.
+Just consult me with the Fortune Teller in the VIP Lounge and I will respond with beer, robin, thin.
+
 ---
 
 # Give me some interesting (cached) stats!<a id="stats"></a>

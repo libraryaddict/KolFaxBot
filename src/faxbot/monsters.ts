@@ -11,6 +11,7 @@ import type {
 import { invalidateReportCache } from "../utils/reportCacheMiddleware.js";
 import { formatNumber } from "../utils/utilities.js";
 import {
+  getClanById,
   getClanStatistics,
   getClanType,
   getFaxClans,
@@ -390,6 +391,11 @@ async function createHtml(botName: string, botId: string) {
   };
 
   md = md.replaceAll("{Bot Info}", `${botName} (#${botId})`);
+
+  const clan = getClanById(config.DEFAULT_CLAN);
+  const defaultClanName = clan ? clan.name : "{ERROR: Default Clan Unknown}";
+
+  md = md.replaceAll("{Default Clan}", defaultClanName);
 
   const clanStats = getClanStatistics();
   const faxStats = await getFaxStatistics();
