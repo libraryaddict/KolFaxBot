@@ -531,7 +531,7 @@ export class FaxOperations {
 
       const oldData = getClanDataById(newClan.id);
 
-      if (fax == "No Fax Machine" || fax == "No Fax Loaded") {
+      if (fax == "No Fax Machine") {
         // Never allow a clan without a fax machine to say its a source clan
         if (data.clanTitle.toLowerCase().includes("source")) {
           data.clanTitle = "";
@@ -552,6 +552,8 @@ export class FaxOperations {
         }
 
         await setFaxMonster(data, photo.id);
+      } else if (fax == "No Fax Loaded") {
+        await setFaxMonster(data, null);
       } else if (oldData != null) {
         // Something went wrong, lets not get into it
         return;
