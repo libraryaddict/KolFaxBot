@@ -125,8 +125,7 @@ export interface FaxClanData {
   clanId: number;
   clanName: string;
   clanTitle: string; // Title we were given in the clan, null if title unknown
-  faxMonster?: string; // The monster name of the fax machine, this is the raw kol provided name
-  faxMonsterId?: number; // The monster ID of the fax machine, will only be undefined if several monsters have this name and we haven't identified which monster it is yet
+  faxMonsterId?: number; // The monster ID of the fax machine, should only be undefined if no fax machine, or no copy obtainable
   faxMonsterLastChanged?: number;
   clanFirstAdded: number; // UNIX seconds
   clanLastChecked: number; // UNIX seconds
@@ -135,7 +134,7 @@ export interface FaxClanData {
 export interface MonsterData {
   id: number;
   name: string; // Name as written in mafia data, this isn't to be relied on for direct comparison with kol monster names as kolmafia adds info to monster names when there's dupes and stuff
-  manualName?: string; // Name as reported in manual, more reliable than `name`
+  manualName?: string; // Name as reported in manual
   category?: MonsterCategory;
 }
 
@@ -161,7 +160,7 @@ export interface UserClan extends KoLClan {
 }
 export type PhotoInfo = {
   name: string;
-  id: string;
+  id: number;
 };
 
 export interface FaxbotDatabaseMonsterList {

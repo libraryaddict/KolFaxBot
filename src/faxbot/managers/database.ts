@@ -32,7 +32,6 @@ export async function saveClan(faxClan: FaxClanData) {
     where: { clanId: faxClan.clanId },
     update: {
       clanTitle: faxClan.clanTitle,
-      faxMonster: faxClan.faxMonster,
       faxMonsterId: faxClan.faxMonsterId,
       faxMonsterLastChanged: faxClan.faxMonsterLastChanged,
       clanLastChecked: faxClan.clanLastChecked,
@@ -41,7 +40,6 @@ export async function saveClan(faxClan: FaxClanData) {
       clanId: faxClan.clanId,
       clanName: faxClan.clanName,
       clanTitle: faxClan.clanTitle,
-      faxMonster: faxClan.faxMonster,
       faxMonsterId: faxClan.faxMonsterId,
       faxMonsterLastChanged: faxClan.faxMonsterLastChanged,
       clanFirstAdded: faxClan.clanFirstAdded,

@@ -1,6 +1,7 @@
 import type { ParentController } from "../../ParentController.js";
 import type { KoLClan, KoLUser } from "../../types.js";
 import { invalidateReportCache } from "../../utils/reportCacheMiddleware.js";
+import { getClanDataById } from "../managers/clans.js";
 import { tryUpdateMonsters } from "../monsters.js";
 import type { FaxCommand } from "./FaxCommand.js";
 
@@ -92,7 +93,27 @@ export class CommandRefresh implements FaxCommand {
 
     const toCheck: KoLClan[] = (
       await this.controller.client.getWhitelists()
-    ).filter((c) => c.name.toLowerCase().includes(params.toLowerCase()));
+    ).filter((c) => {
+      // When we need to check all clans for reasons (Eg, corrupted data, new data stored)
+      if (params == "*") {
+        return true;
+      } else if (params == "id_missing") {
+        const clan = getClanDataById(c.id);
+
+        return clan == null || clan.faxMonsterId == null;
+      } else {
+        return c.name.toLowerCase().includes(params.toLowerCase());
+      }
+    });
+
+    if (toCheck.length == 0) {
+      await this.controller.client.sendPrivateMessage(
+        sender,
+        `None of my whitelisted clans matched your query.`
+      );
+
+      return;
+    }
 
     await this.controller.client.sendPrivateMessage(
       sender,

@@ -1,7 +1,7 @@
 import type { ParentController } from "../../ParentController.js";
 import type { KoLUser, MonsterData } from "../../types.js";
 import { getSpecificFaxSources, setFaxMonster } from "../managers/clans.js";
-import { getMonster, getMonsterById, getMonsters } from "../monsters.js";
+import { getMonsterById, getMonsters } from "../monsters.js";
 import type { FaxCommand } from "./FaxCommand.js";
 
 export class CommandAddMonster implements FaxCommand {
@@ -23,16 +23,16 @@ export class CommandAddMonster implements FaxCommand {
     return `Joins your clan, grabs fax from machine, adds to an empty fax clan that was previously setup for that monster. Fax clan has title given 'Source: M1234' where 1234 is monster ID`;
   }
 
-  async execute(sender: KoLUser, paramters: string): Promise<any> {
-    if (paramters == `which`) {
+  async execute(sender: KoLUser, params: string): Promise<any> {
+    if (params == `which`) {
       await this.which(sender);
 
       return;
     }
 
-    if (paramters.split(" ")[0] == `run`) {
+    if (params.split(" ")[0] == `run`) {
       try {
-        await this.run(sender, paramters.substring(3).trim());
+        await this.run(sender);
       } finally {
         await this.controller.faxer.dumpFax(null, true);
         await this.controller.faxer.joinDefaultClan();
@@ -41,52 +41,46 @@ export class CommandAddMonster implements FaxCommand {
       return;
     }
 
-    if (paramters.length > 0) {
-      const monsters = getMonster(paramters);
+    if (params.length > 0) {
+      const possibleMatches = getMonsters(params);
 
-      if (monsters.length > 0) {
-        const clans = getSpecificFaxSources().filter(([c, id]) =>
-          monsters.some(
-            (m) =>
-              m.id == id &&
-              (getMonsterById(id).manualName ?? getMonsterById(id).name) !=
-                c.faxMonster
-          )
+      if (possibleMatches.length == 0) {
+        await this.controller.client.sendPrivateMessage(
+          sender,
+          `Unknown argument, send 'which' to find what I'm looking for or 'run' to ask me to look in your fax machine to try process it. You can also send the monster name/ID to check if I need that one.`
         );
 
-        if (clans.length == 0) {
-          await this.controller.client.sendPrivateMessage(
-            sender,
-            `I do not need that monster thanks!`
-          );
-        } else {
-          await this.controller.client.sendPrivateMessage(
-            sender,
-            `It appears that monster would fit nicely into my fax network, use 'run' to tell me to grab that monster from your fax machine.`
-          );
-        }
+        return;
+      }
+
+      // Filter to a list of clans that might want this
+      const clans = getSpecificFaxSources().filter(([c, id]) =>
+        possibleMatches.some((m) => m.id == id && c.faxMonsterId != id)
+      );
+
+      if (clans.length == 0) {
+        await this.controller.client.sendPrivateMessage(
+          sender,
+          `I do not need that monster thanks!`
+        );
       } else {
         await this.controller.client.sendPrivateMessage(
           sender,
-          `I do not recognize that argument. Did you mean 'which' or 'run'? You can also just send me the monster name/ID to check if I need that one.`
+          `It appears that monster would fit nicely into my fax network, use 'run' to tell me to grab that monster from your fax machine.`
         );
       }
-
-      return;
+    } else {
+      await this.controller.client.sendPrivateMessage(
+        sender,
+        `I do not recognize that argument. Did you mean 'which' or 'run'? You can also just send me the monster name/ID to check if I need that one.`
+      );
     }
-
-    await this.controller.client.sendPrivateMessage(
-      sender,
-      `Unknown argument, send 'which' to find what I'm looking for or 'run' to ask me to look in your fax machine to try process it. You can also send the monster name/ID to check if I need that one.`
-    );
   }
 
   async which(sender: KoLUser) {
+    // Filter to a list of clans that don't have their desired monster
     const clans = getSpecificFaxSources().filter(
-      ([c, id]) =>
-        c.faxMonster == null ||
-        c.faxMonster !=
-          (getMonsterById(id).manualName ?? getMonsterById(id).name)
+      ([c, id]) => c.faxMonsterId != id
     );
 
     if (clans.length == 0) {
@@ -134,7 +128,7 @@ export class CommandAddMonster implements FaxCommand {
     );
   }
 
-  async run(sender: KoLUser, extra: string = "") {
+  async run(sender: KoLUser) {
     const clan = await this.controller.client.getClanInfo(parseInt(sender.id));
 
     if (clan == null) {
@@ -182,51 +176,11 @@ export class CommandAddMonster implements FaxCommand {
       return;
     }
 
-    let monster: MonsterData;
-    const expectedMonsterId = extra.match(/^\d+$/) ? parseInt(extra) : null;
-
-    if (expectedMonsterId != null) {
-      const monsters = getMonsters().filter(
-        (m) => m.manualName == photo.name || m.name == photo.name
-      );
-
-      monster = monsters.find((m) => m.id == expectedMonsterId);
-
-      if (monster == null) {
-        await this.controller.client.sendPrivateMessage(
-          sender,
-          `Error while looking at monster name. Unable to find a monster that matches that ID and the received photo (${photo.name})`
-        );
-
-        return;
-      }
-    } else {
-      const monsters = getMonster(photo.name);
-
-      if (monsters.length != 1) {
-        await this.controller.client.sendPrivateMessage(
-          sender,
-          `Error while looking at monster name. Expected a single monster to match, ${monsters.length} matched the name instead`
-        );
-
-        return;
-      }
-
-      monster = monsters[0];
-    }
+    const monster: MonsterData = getMonsterById(photo.id);
 
     // Filter to only the clans that are empty or mismatch in monster
-    const clans = getSpecificFaxSources(
-      expectedMonsterId != null ? "A" : "M"
-    ).filter(
-      ([clan, id]) =>
-        ((expectedMonsterId == null && monster.id == id) ||
-          expectedMonsterId == id) &&
-        (clan.faxMonster == null ||
-          clan.faxMonsterId == null ||
-          clan.faxMonsterId != id ||
-          getMonsterById(clan.faxMonsterId)?.manualName !=
-            getMonsterById(id)?.manualName)
+    const clans = getSpecificFaxSources().filter(
+      ([clan, id]) => id == monster.id && clan.faxMonsterId != id
     );
 
     if (clans.length == 0) {
@@ -281,11 +235,7 @@ export class CommandAddMonster implements FaxCommand {
         }
       }
 
-      await setFaxMonster(
-        faxClan,
-        monster.manualName ?? monster.name,
-        expectedMonsterId
-      );
+      await setFaxMonster(faxClan, monster.id);
       await this.controller.client.sendPrivateMessage(
         sender,
         `Updated a source clan to contain the monster ${monster.name}. Thank you!`

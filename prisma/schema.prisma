@@ -14,7 +14,6 @@ model FaxClan {
     clanId                Int     @id @unique
     clanName              String  @unique
     clanTitle             String?
-    faxMonster            String?
     faxMonsterId          Int?
     faxMonsterLastChanged Int?
     clanFirstAdded        Int

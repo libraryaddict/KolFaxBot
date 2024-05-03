@@ -31,8 +31,11 @@ export class FaxAdministration {
 
   async refreshClans(clans: KoLClan[]) {
     try {
-      for (const clan of clans) {
-        await this.getFaxRunner().checkClanInfo(clan);
+      for (let i = 0; i < clans.length; i++) {
+        await this.getFaxRunner().checkClanInfo(
+          clans[i],
+          clans.length > 1 ? `(${i + 1} / ${clans.length})` : null
+        );
       }
     } finally {
       await this.getFaxRunner().joinDefaultClan();

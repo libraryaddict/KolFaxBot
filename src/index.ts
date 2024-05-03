@@ -1,8 +1,5 @@
 import { config } from "./config.js";
-import {
-  formatMonsterList,
-  generateLookingForAmbiguous,
-} from "./faxbot/monsters.js";
+import { formatMonsterList, generateLookingFor } from "./faxbot/monsters.js";
 import { ParentController } from "./ParentController.js";
 import { addLog } from "./Settings.js";
 import type { KOLMessage } from "./types.js";
@@ -21,7 +18,7 @@ const app = new App();
 app
   // Since every endpoint is a report, for the moment this middleware is just set up
   // to cache every endpoint.
-  .use(cacheReports(["/", "/onlyfax.xml", "/onlyfax.json", "ambiguous.json"]))
+  .use(cacheReports(["/", "/onlyfax.xml", "/onlyfax.json", "lookingfor.json"]))
   .get("/", async (_, res) => {
     const html = await formatMonsterList("html", username, userId);
     void res.type("html").send(html);
@@ -41,8 +38,8 @@ app
         .send(await formatMonsterList("json", username, userId))
   )
   .get(
-    "/ambiguous.json",
-    (_, res) => void res.type("json").send(generateLookingForAmbiguous())
+    "/lookingfor.json",
+    (_, res) => void res.type("json").send(generateLookingFor())
   )
   /*.get(
     "/kmails.json",

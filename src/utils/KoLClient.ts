@@ -453,7 +453,9 @@ export class KoLClient {
     } catch (e) {
       if (isAxiosError(e)) {
         console.error(
-          `Experienced error when visiting '${url}', ${e.status}: ${e.response}`,
+          `Experienced error when visiting '${url}', ${e.status}: ${
+            e.response?.data ?? e.response
+          }`,
           e
         );
 
@@ -598,7 +600,7 @@ export class KoLClient {
 
     return {
       name: match[1],
-      id: match[2],
+      id: parseInt(match[2]),
     };
   }
 

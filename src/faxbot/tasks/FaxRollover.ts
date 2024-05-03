@@ -9,7 +9,6 @@ import {
   setFaxMonster,
   updateClan,
 } from "../managers/clans.js";
-import { getMonsterById } from "../monsters.js";
 
 export class FaxRollover {
   controller: ParentController;
@@ -138,13 +137,7 @@ export class FaxRollover {
       return false;
     }
 
-    const monster = getMonsterById(fightingMonster);
-
-    await setFaxMonster(
-      clan,
-      monster.manualName ?? monster.name,
-      fightingMonster
-    );
+    await setFaxMonster(clan, fightingMonster);
 
     return true;
   }
