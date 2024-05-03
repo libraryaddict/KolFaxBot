@@ -8,6 +8,7 @@ import type {
 } from "../../types.js";
 import type { KoLClient } from "../../utils/KoLClient.js";
 import type { FaxMessages } from "../../utils/messages.js";
+import { getMonsterById, PHOTOCOPIED_BUTT_ID } from "../monsters.js";
 
 export enum FaxOutcome {
   FAILED,
@@ -36,7 +37,10 @@ export class RolloverFaxRequest implements FaxRequest {
 
   constructor(clan: FaxClanData) {
     this.clan = clan;
-    this.monsterName = clan.faxMonster;
+    this.monsterName =
+      clan.faxMonsterId != null
+        ? getMonsterById(clan.faxMonsterId)?.name
+        : "Unknown Monster";
     this.targetClan = { id: clan.clanId, name: clan.clanName };
   }
 
@@ -86,7 +90,7 @@ export class PlayerFaxRequest implements FaxRequest {
 
   getSpecialName() {
     if (
-      this.monster.name != `somebody else's butt` ||
+      this.monster.id != PHOTOCOPIED_BUTT_ID ||
       this.faxSource == null ||
       this.faxSource.clanTitle == null
     ) {
@@ -105,17 +109,7 @@ export class PlayerFaxRequest implements FaxRequest {
   }
 
   async notifyUpdate(message: FaxMessages) {
-    let monsterName = this.getMonsterName();
-
-    // If the monster wasn't named especially (Prevent a butt from being warned as another possible monster)
-    if (
-      this.getSpecialName() == null &&
-      this.monster.category == "Ambiguous" &&
-      this.faxSource != null &&
-      this.faxSource.faxMonsterId != this.monster.id
-    ) {
-      monsterName += ` !! This may be another monster by the same name !!`;
-    }
+    const monsterName = this.getMonsterName();
 
     let msg = message.replaceAll(`{monster}`, monsterName);
     msg = msg.replaceAll(`{operator}`, config.FAXBOT_OPERATOR);

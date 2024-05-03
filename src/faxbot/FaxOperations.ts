@@ -21,7 +21,12 @@ import {
   updateClan,
 } from "./managers/clans.js";
 import { addFaxLog } from "./managers/database.js";
-import { getMonster, getMonsters, tryUpdateMonsters } from "./monsters.js";
+import {
+  getMonsterById,
+  getMonsters,
+  PHOTOCOPIED_BUTT_ID,
+  tryUpdateMonsters,
+} from "./monsters.js";
 import type { FaxAdministration } from "./tasks/FaxAdministration.js";
 
 export class FaxOperations {
@@ -73,7 +78,7 @@ export class FaxOperations {
     let clan: FaxClanData;
 
     if (buttMatch == null) {
-      let monsters = getMonster(message);
+      let monsters = getMonsters(message);
 
       if (monsters.length == 0) {
         await this.getClient().sendPrivateMessage(
@@ -122,7 +127,7 @@ export class FaxOperations {
     } else {
       const clans = getFaxClans(`Fax Source`, `Random Clan`).filter(
         (c) =>
-          c.faxMonster == `somebody else's butt` &&
+          c.faxMonsterId == PHOTOCOPIED_BUTT_ID &&
           (c.clanTitle ?? "").endsWith(`Source: ${buttMatch[1]}`)
       );
 
@@ -143,7 +148,7 @@ export class FaxOperations {
 
       clan = clans[0];
 
-      monster = getMonster(`somebody else's butt`)[0];
+      monster = getMonsterById(PHOTOCOPIED_BUTT_ID);
     }
 
     const clanInfo = await this.getClient().getClanInfo(parseInt(player.id));
@@ -324,19 +329,20 @@ export class FaxOperations {
 
     const photo = await this.getClient().getPhotoInfo();
 
-    if (photo == null || photo.name != monsterClan.faxMonster) {
+    if (photo == null || photo.id != monsterClan.faxMonsterId) {
       if (!(await this.dumpFax(faxAttempt))) {
         return FaxOutcome.FAILED;
       }
 
       addLog(
         `Fax was not as expected, expected ${
-          monsterClan.faxMonster
-        } but received ${photo == null ? null : photo.name}. Removing ${
-          monsterClan.clanName
-        } from network`
+          monsterClan.faxMonsterId
+        } but received ${photo == null ? null : photo.id}. The clan will be ${
+          photo == null ? "removed" : "updated"
+        }.`
       );
-      await setFaxMonster(monsterClan, photo == null ? null : photo.name, null);
+
+      await setFaxMonster(monsterClan, photo == null ? null : photo.id);
 
       return FaxOutcome.TRY_AGAIN;
     }
@@ -366,7 +372,8 @@ export class FaxOperations {
       ) {
         monsterClan.clanTitle = "";
       }
-      await setFaxMonster(monsterClan, null, null);
+
+      await setFaxMonster(monsterClan, null);
 
       addLog(
         `The fax source clan ${monsterClan.clanName} had an invalid state: ${fax}`
@@ -421,7 +428,7 @@ export class FaxOperations {
     faxAttempt: FaxRequest
   ): Promise<FaxOutcome> {
     if (joinSource == `Not Whitelisted`) {
-      await setFaxMonster(monsterClan, null, null);
+      await setFaxMonster(monsterClan, null);
       addLog(
         `Removed ${monsterClan.clanName} from fax network, we're not whitelisted`
       );
@@ -472,8 +479,12 @@ export class FaxOperations {
     return FaxOutcome.FAILED;
   }
 
-  async checkClanInfo(clan: KoLClan) {
-    addLog(`Now checking up on clan ${clan.name}`);
+  async checkClanInfo(clan: KoLClan, extraDebugInfo: string = null) {
+    addLog(
+      `Now checking up on clan ${clan.name}${
+        extraDebugInfo ? " " + extraDebugInfo : ""
+      }`
+    );
 
     const state = await this.getClient().joinClanForcibly(
       clan,
@@ -520,39 +531,28 @@ export class FaxOperations {
 
       const oldData = getClanDataById(newClan.id);
 
-      if (fax == "No Fax Machine") {
+      if (fax == "No Fax Machine" || fax == "No Fax Loaded") {
         // Never allow a clan without a fax machine to say its a source clan
         if (data.clanTitle.toLowerCase().includes("source")) {
           data.clanTitle = "";
         }
       } else if (fax == `Grabbed Fax`) {
         const photo = await this.getClient().getPhotoInfo();
+        await this.dumpFax(null);
 
         if (photo == null || photo.name == null) {
           // We bugged out somewhere, lets just log it and move on
           addLog(`Failed to find fax information in clan ${newClan.name}`);
-          await this.dumpFax(null);
 
           return;
         }
 
-        await this.dumpFax(null);
-        const monsters = getMonsters().filter(
-          (m) => m.manualName == photo.name
-        );
-
-        if (monsters.length == 0) {
+        if (getMonsterById(photo.id) == null) {
           await tryUpdateMonsters();
         }
 
-        let monsterId = oldData?.faxMonsterId;
-
-        if (monsterId != null && !monsters.some((m) => m.id == monsterId)) {
-          monsterId = null;
-        }
-
-        await setFaxMonster(data, photo.name, monsterId);
-      } else if (oldData != null && oldData.faxMonster != null) {
+        await setFaxMonster(data, photo.id);
+      } else if (oldData != null) {
         // Something went wrong, lets not get into it
         return;
       }

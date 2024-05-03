@@ -28,6 +28,8 @@ import { encodeXML } from "entities";
 import { readFileSync } from "fs";
 import { marked } from "marked";
 
+export const PHOTOCOPIED_BUTT_ID = 1049;
+
 const monsters: MonsterData[] = [];
 
 /**
@@ -174,7 +176,11 @@ export function getMonsterById(id: number): MonsterData {
 /**
  *
  */
-export function getMonster(identifier: string): MonsterData[] {
+export function getMonsters(identifier?: string): MonsterData[] {
+  if (identifier == null) {
+    return monsters;
+  }
+
   // Lowercase it then replace any spaces with no-spaces
   // We're not going to get smarter about this yet
   identifier = identifier.replaceAll(` `, ``).toLowerCase();
@@ -282,30 +288,15 @@ export function createMonsterList(
   const monsterList: FaxbotDatabaseMonster[] = [];
 
   for (const clan of clans) {
-    let monsterData: MonsterData;
-
-    if (clan.faxMonsterId != null) {
-      monsterData = getMonsterById(clan.faxMonsterId);
-    } else {
-      let monsters = getMonsters().filter(
-        (m) => (m.manualName ?? m.name) == clan.faxMonster
-      );
-
-      if (monsters.length == 0) {
-        monsters = getMonster(clan.faxMonster);
-      }
-
-      // Only display if the monster ID is not in question
-      if (monsters.length == 1) {
-        monsterData = monsters[0];
-      } else {
-        continue;
-      }
+    if (clan.faxMonsterId == null) {
+      continue;
     }
+
+    const monsterData = getMonsterById(clan.faxMonsterId);
 
     if (monsterData == null) {
       addLog(
-        `Unable to find a monster '${clan.faxMonster}'. We have ${monsters.length} monsters loaded`
+        `Unable to find a monster '${clan.faxMonsterId}'. We have ${monsters.length} monsters loaded`
       );
       continue;
     }
@@ -355,10 +346,6 @@ export function createMonsterList(
   monsterList.sort((s1, s2) => s1.name.localeCompare(s2.name));
 
   return monsterList;
-}
-
-export function getMonsters() {
-  return monsters;
 }
 
 const constSpace = `\t`;
@@ -446,9 +433,7 @@ async function createHtml(botName: string, botId: string) {
 
   // Build the list of clans that are looking for monsters
   const lookingForClans = getSpecificFaxSources().filter(
-    ([c, id]) =>
-      c.faxMonster == null ||
-      c.faxMonster != (getMonsterById(id).manualName ?? getMonsterById(id).name)
+    ([c, id]) => c.faxMonsterId != id
   );
 
   // We're sorting this by newest clans first
@@ -487,16 +472,9 @@ async function createHtml(botName: string, botId: string) {
   return html;
 }
 
-export function generateLookingForAmbiguous(): string {
-  const clans = getSpecificFaxSources("A")
-    .filter(
-      ([clan, monsterId]) =>
-        clan.faxMonster == null ||
-        clan.faxMonsterId == null ||
-        clan.faxMonsterId != monsterId ||
-        getMonsterById(clan.faxMonsterId)?.manualName !=
-          getMonsterById(monsterId)?.manualName
-    )
+export function generateLookingFor(): string {
+  const clans = getSpecificFaxSources()
+    .filter(([clan, monsterId]) => clan.faxMonsterId != monsterId)
     .map(([clan, monsterId]) => ({
       clan: clan.clanName,
       title: clan.clanTitle,
