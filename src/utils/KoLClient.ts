@@ -584,18 +584,21 @@ export class KoLClient {
   async getPhotoInfo(): Promise<PhotoInfo> {
     const item = await this.visitUrl(`desc_item.php?whichitem=835898159`);
 
-    const match = item.match(/likeness of (a|an) (.*?) on it/);
+    const match = item.match(
+      /likeness of (?:a|an) (.*?)<!-- monsterid: (\d+) --> on it/
+    );
 
     if (match == null) {
       return null;
     }
 
-    if (match[2] == "butt") {
-      match[2] = "somebody else's butt";
+    if (match[1] == "butt") {
+      match[1] = "somebody else's butt";
     }
 
     return {
-      name: match[2],
+      name: match[1],
+      id: match[2],
     };
   }
 

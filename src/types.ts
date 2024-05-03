@@ -161,6 +161,7 @@ export interface UserClan extends KoLClan {
 }
 export type PhotoInfo = {
   name: string;
+  id: string;
 };
 
 export interface FaxbotDatabaseMonsterList {
