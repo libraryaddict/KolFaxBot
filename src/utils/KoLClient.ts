@@ -560,7 +560,10 @@ export class KoLClient {
     if (
       result.includes(
         `It turns out to just be a blank sheet of paper, so you throw it away`
-      )
+      ) ||
+      result.includes(
+        `The stupid broken fax machine just spits out another blank sheet of paper.`
+      ) // Monster that used to be faxable but now isn't, eg, embezzler
     ) {
       return `No Fax Loaded`;
     }
