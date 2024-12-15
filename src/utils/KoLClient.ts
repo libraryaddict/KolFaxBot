@@ -569,7 +569,7 @@ export class KoLClient {
     }
 
     if (
-      result.includes(`<b>Clan VIP Lounge (Attic)</b>`) &&
+      result.includes(`>Clan VIP Lounge (Attic)</b>`) &&
       !result.includes(
         `<a href=clan_viplounge.php?action=faxmachine&whichfloor=2>`
       )
@@ -722,7 +722,7 @@ export class KoLClient {
     const clans: KoLClan[] = [];
 
     for (const [, clanId, clanName] of clanRecuiterResponse.matchAll(
-      /<a href=showclan\.php\?whichclan=(\d+) class=nounder><b>([^>]*?)<\/b>(?=.* bgcolor=blue><b>Apply to a Clan<\/b>)/gm
+      /<a href=showclan\.php\?whichclan=(\d+) class=nounder><b>([^>]*?)<\/b>(?=.* bgcolor=blue><b.*?>Apply to a Clan<\/b>)/gm
     )) {
       clans.push({
         id: parseInt(clanId),
@@ -770,15 +770,6 @@ export class KoLClient {
     return res;
   }
 
-  async disbandClan(): Promise<boolean> {
-    const res = await this.visitUrl(`clan_admin.php`, {
-      action: `disband`,
-      confirm: `on`,
-    });
-
-    return res.includes(`bgcolor=blue><b>Apply to a Clan</b>`);
-  }
-
   async joinClan(clan: UserClan, goal: string): Promise<ClanJoinAttempt> {
     const page = await this.visitUrl(`showclan.php`, {
       whichclan: clan.id,
@@ -820,7 +811,7 @@ export class KoLClient {
       return `Joined`;
     }
 
-    const clanMatch = page.match(/<b>Clan Hall<\/b>.+?<b>(.+?)<\/b>/);
+    const clanMatch = page.match(/>Clan Hall<\/b>.+?<b>(.+?)<\/b>/);
 
     // Backup!
     if (clanMatch != null && clanMatch[1] === clan.name) {
