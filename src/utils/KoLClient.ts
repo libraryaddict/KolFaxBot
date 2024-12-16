@@ -601,6 +601,11 @@ export class KoLClient {
       match[1] = "somebody else's butt";
     }
 
+    // KoL bug has it always reported as ID of 1
+    if (match[1] == "somebody else's butt") {
+        match[2] = "1049";
+    }
+
     return {
       name: match[1],
       id: parseInt(match[2]),
