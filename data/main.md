@@ -115,7 +115,7 @@ I will pop into your clan, take your fax then send it to the clan that was looki
 
 If the faxbot is looking for monsters, they will be listed below.
 Remember, you only need to add the fax to a fax machine, then send me `addfax run` to tell me to come over and pick up the fax to deposit it into the clan that is looking for this monster. You can acquire the fax by using a `portable photocopier` on the monster in a fight.
-Be aware that some of the monsters in this list may be impossible to acquire normally as they prevent you from using combat items, and as such, are more of a dream than a reality.
+Be aware that some of the monsters in this list may be impossible to acquire normally as the monster may prevent you from using combat items, and as such, are more of a dream than a reality.
 
 | ID  | Name | Command |
 | --- | ---- | ------- |
