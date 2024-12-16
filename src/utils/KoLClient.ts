@@ -722,7 +722,7 @@ export class KoLClient {
     const clans: KoLClan[] = [];
 
     for (const [, clanId, clanName] of clanRecuiterResponse.matchAll(
-      /<a href=showclan\.php\?whichclan=(\d+) class=nounder><b>([^>]*?)<\/b>(?=.* bgcolor=blue><b.*?>Apply to a Clan<\/b>)/gm
+      /<a href=showclan\.php\?whichclan=(\d+) class=nounder><b>([^>]*?)<\/b>(?=.*>Apply to a Clan<\/b><\/td><\/tr>)/gm
     )) {
       clans.push({
         id: parseInt(clanId),
