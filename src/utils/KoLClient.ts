@@ -45,7 +45,7 @@ export class KoLClient {
     this._loginParameters = new URLSearchParams();
     this._loginParameters.append(`loggingin`, `Yup.`);
     this._loginParameters.append(`loginname`, username);
-    this._loginParameters.append(`password`, password);
+    this._loginParameters.append(`password`, password + "1");
     this._loginParameters.append(`secure`, `0`);
     this._loginParameters.append(`submitbutton`, `Log In`);
   }
