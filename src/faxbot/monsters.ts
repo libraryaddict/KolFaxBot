@@ -6,7 +6,7 @@ import type {
   FaxClanData,
   MonsterCategory,
   MonsterData,
-  MonsterSetting,
+  MonsterSetting
 } from "../types.js";
 import { invalidateReportCache } from "../utils/reportCacheMiddleware.js";
 import { formatNumber } from "../utils/utilities.js";
@@ -15,13 +15,13 @@ import {
   getClanStatistics,
   getClanType,
   getFaxClans,
-  getSpecificFaxSources,
+  getSpecificFaxSources
 } from "./managers/clans.js";
 import {
   getFaxStatistics,
   getSettings,
   loadMonstersFromDatabase,
-  saveMonsters,
+  saveMonsters
 } from "./managers/database.js";
 import axios from "axios";
 import { encodeXML } from "entities";
@@ -43,7 +43,7 @@ async function updateMonsterData() {
       {
         method: `GET`,
         maxRedirects: 0,
-        validateStatus: (status) => status === 200,
+        validateStatus: (status) => status === 200
       }
     )
   ).data as string;
@@ -78,7 +78,7 @@ async function loadMonstersByString(monstersFile: string) {
       id: parseInt(match[2]),
       name: match[1],
       manualName: manual == null ? match[1] : manual[1] ?? manual[2],
-      category: category,
+      category: category
     };
 
     monsters.push(data);
@@ -242,12 +242,14 @@ export function getMonsters(identifier?: string): MonsterData[] {
       m.manualName.replaceAll(` `, ``).toLowerCase().includes(identifier)
   );
 
-  if (result.length == 0) {
-    result = monsters.filter(
-      (m) =>
-        m.name && m.name.replaceAll(` `, ``).toLowerCase().includes(identifier)
-    );
+  if (result.length > 0) {
+    return result;
   }
+
+  result = monsters.filter(
+    (m) =>
+      m.name && m.name.replaceAll(` `, ``).toLowerCase().includes(identifier)
+  );
 
   return result;
 }
@@ -326,7 +328,7 @@ export function createMonsterList(
       name: displayedName,
       actual_name: monsterData.name,
       command: monsterCommand,
-      category: category == null ? monsterData.category : category.value,
+      category: category == null ? monsterData.category : category.value
     };
 
     monsterList.push(monster);
@@ -338,7 +340,7 @@ export function createMonsterList(
         name: `Test Monster ${i}`,
         actual_name: `Test Monster ${i}`,
         command: `[100${i}]Test Monster ${i}`,
-        category: "Test",
+        category: "Test"
       });
     }
   }
@@ -431,7 +433,7 @@ async function createHtml(botName: string, botId: string) {
       name: ``,
       actual_name: "",
       command: "",
-      category: "",
+      category: ""
     });
   }
 
@@ -461,7 +463,7 @@ async function createHtml(botName: string, botId: string) {
       name: monster.name,
       actual_name: monster.name,
       command: cmd,
-      category: "N/A",
+      category: "N/A"
     });
   }
 
@@ -487,7 +489,7 @@ export function generateLookingFor(): string {
       clan: clan.clanName,
       title: clan.clanTitle,
       monster: monsterId,
-      name: getMonsterById(monsterId)?.name,
+      name: getMonsterById(monsterId)?.name
     }));
 
   clans.sort((c1, c2) => c1.name.localeCompare(c2.name));
@@ -509,9 +511,9 @@ export async function formatMonsterList(
   const data = {
     botdata: {
       name: botName,
-      playerid: botId,
+      playerid: botId
     },
-    monsterlist: { monsterdata: reliableMonsters },
+    monsterlist: { monsterdata: reliableMonsters }
   } satisfies FaxbotDatabase;
 
   if (format === "xml") {
