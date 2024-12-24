@@ -45,43 +45,38 @@ export class FaxFinder {
     const clanMatch: FaxClanData[] = getFaxClans(
       `Fax Source`,
       `Random Clan`
-    ).filter(
-      (c) =>
-        c.faxMonsterId == PHOTOCOPIED_BUTT_ID &&
-        (c.clanTitle ?? "")
-          .toLowerCase()
-          .replaceAll(` `, ``)
-          .includes(this.faxRequestMessage.replace(` `, ``).toLowerCase())
-    );
+    ).filter((c) => {
+      // If clan is not a butt
+      if (c.faxMonsterId != PHOTOCOPIED_BUTT_ID) {
+        return false;
+      }
 
-    const validName = (title: string) => {
-      const match = (title ?? "").toLowerCase().match(/source: (.*?'s butt)$/);
+      // Match with regex to extract the butt's name
+      const match = (c.clanTitle ?? "")
+        .toLowerCase()
+        .match(/source: (.*?'s butt)$/);
 
+      // Clan title did not match the name
       if (match == null) {
         return false;
       }
 
+      // All clan matches must have the result found in the correct name syntax
       return match[1]
         .replaceAll(` `, ``)
         .includes(this.faxRequestMessage.replaceAll(` `, ``).toLowerCase());
-    };
-
-    // Sort clans to have the correct title syntax, then for the oldest clans to go first
-    clanMatch.sort((c1, c2) => {
-      const valid1 = validName(c1.clanTitle);
-      const valid2 = validName(c2.clanTitle);
-
-      if (valid1 == valid2) {
-        return c1.faxMonsterLastChanged - c2.faxMonsterLastChanged;
-      }
-
-      return valid1 ? -1 : 1;
     });
+
+    // Sort clans to have the oldest clans go first
+    clanMatch.sort(
+      (c1, c2) => c1.faxMonsterLastChanged - c2.faxMonsterLastChanged
+    );
 
     if (clanMatch.length == 0) {
       return;
     }
 
+    // Use the first found result
     this.clan = clanMatch[0];
     this.monster = getMonsterById(PHOTOCOPIED_BUTT_ID);
   }
