@@ -43,8 +43,6 @@ export class ParentController {
     this.fortune = new FortuneTeller(this.client);
     this.rollover = new FaxRollover(this);
     this.messages = new MessageHandler(this);
-
-    await this.onNewDay();
   }
 
   shouldRestart(): boolean {
@@ -108,7 +106,6 @@ export class ParentController {
       );
       process.exit(0);
 
-      return;
     }
 
     // Finally, let the rest of the bot operate

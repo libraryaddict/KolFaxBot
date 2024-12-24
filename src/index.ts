@@ -72,4 +72,7 @@ if (config.TESTING) {
   });
 }
 
+// Process this after the web interface has started, could take a while!
+await controller.onNewDay();
+// Start the actual bot!
 await controller.startBotHeartbeat();
